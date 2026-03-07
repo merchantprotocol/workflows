@@ -1,0 +1,46 @@
+id: workflow-1772855930895
+name: Heartbeat
+description: ""
+version: 1
+createdAt: 2026-03-07T03:58:50.895Z
+updatedAt: 2026-03-07T06:49:04.144Z
+nodes:
+  - id: node-1772855984953
+    type: workflow
+    position:
+      x: 481.5
+      y: 290
+    data:
+      subtype: heartbeat
+      category: trigger
+      label: Heartbeat Trigger
+      config:
+        triggerType: heartbeat
+        triggerDescription: ""
+  - id: node-1772855986835
+    type: workflow
+    position:
+      x: 496.25
+      y: 399
+    data:
+      subtype: agent
+      category: agent
+      label: Radius
+      config:
+        agentId: dreaming-protocol
+        agentName: Radius
+        additionalPrompt: ""
+        userMessage: "{{trigger.result}}"
+edges:
+  - id: vueflow__edge-node-1772855984953-node-1772855986835
+    source: node-1772855984953
+    target: node-1772855986835
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+viewport:
+  x: -466.5
+  y: -250
+  zoom: 2
+enabled: true
