@@ -1,0 +1,155 @@
+id: workflow-1772933603457
+name: Project Management
+description: Use this when you want to create a new project
+version: 1
+createdAt: 2026-03-08T01:33:23.457Z
+updatedAt: 2026-03-17T00:39:34.511Z
+nodes:
+  - id: node-1772933606257
+    type: workflow
+    position:
+      x: 643.5092222751879
+      y: 195.25306859306184
+    data:
+      subtype: workbench
+      category: trigger
+      label: Workbench Trigger
+      config:
+        triggerType: workbench
+        triggerDescription: ""
+      execution:
+        status: completed
+        output: |-
+          Create a test project for unified messaging and conversation tracking system. The goal is to set up message tracking across social media platforms (Instagram, TikTok, LinkedIn, X/Twitter, Facebook), email systems, and phone systems (SMS/voice), with centralized conversation management. I need a comprehensive test plan that covers:
+          1. Integration requirements for each platform
+          2. Message ingestion and routing architecture
+          3. Conversation threading and context management
+          4. Unified inbox/dashboard design
+          5. Response handling across channels
+          6. Testing strategy for each integration point
+          7. Success metrics and validation criteria
+
+          This is a test/proof-of-concept project to validate our workflow system and integration capabilities.
+        completedAt: 2026-03-08T08:23:45.674Z
+  - id: node-1772933618324
+    type: workflow
+    position:
+      x: 657.4209220499441
+      y: 442.90992847856467
+    data:
+      subtype: agent
+      category: agent
+      label: Agent
+      config:
+        agentId: technical-architect
+        agentName: Technical Architect
+        additionalPrompt: ""
+        userMessage: ""
+      execution:
+        status: completed
+        output: |-
+          ***
+
+          ## Next Technical Action Plan
+
+          **Task Title:** Implement PostgreSQL Database Schema for Unified Messaging System
+
+          **Why this task is next:** The PRD is complete and Phase 1 (Infrastructure) can begin immediately. Database schema creation does not require any API credentials — it's the foundational layer all platform integrations will depend on. This unblocks the next phase of development.
+
+          **Objective:** Create and deploy the PostgreSQL schema defined in the PRD, including tables for conversations, messages, platform accounts, message routing rules, and audit logs. Set up indexes for performance and create initial seed data for testing.
+
+          **Detailed Technical Steps:**
+
+          1. **Review PRD Schema Design**: Read the unified-messaging-system PRD at `/Users/jonathonbyrdziak/sulla/projects/unified-messaging-system/PROJECT.md` section "Architecture → Database Schema" to confirm table structures, relationships, and field definitions.
+
+          2. **Create Migration File**: Write a SQL migration script at `/Users/jonathonbyrdziak/sulla/projects/unified-messaging-system/db/migrations/001_initial_schema.sql` containing:
+             - `platform_accounts` table (id, platform_type, account_id, access_token, refresh_token, expires_at, metadata, created_at, updated_at)
+             - `conversations` table (id, uuid, primary_platform_account_id, status, metadata, created_at, updated_at)
+             - `conversation_mappings` table (id, conversation_id, platform_type, platform_conversation_id, platform_account_id, is_primary, created_at)
+             - `messages` table (id, conversation_id, platform_type, platform_message_id, direction, content, metadata, status, created_at, delivered_at)
+             - `message_routing_rules` table (id, name, condition_type, condition_value, action_type, action_value, priority, is_active, created_at)
+             - `audit_logs` table (id, entity_type, entity_id, action, old_value, new_value, created_at)
+             - Foreign key constraints and indexes on frequently queried columns (platform_message_id, conversation_id, created_at)
+
+          3. **Create Index Strategy**: Add indexes for query performance:
+             - `messages(conversation_id, created_at)` for conversation history queries
+             - `messages(platform_type, platform_message_id)` for deduplication lookups
+             - `conversation_mappings(platform_type, platform_conversation_id)` for cross-platform mapping
+             - `platform_accounts(platform_type, account_id)` for account lookups
+
+          4. **Create Seed Data Script**: Write `/Users/jonathonbyrdziak/sulla/projects/unified-messaging-system/db/seeds/test_data.sql` with sample:
+             - 2 test platform accounts (one Instagram, one Email)
+             - 1 test conversation with cross-platform mappings
+             - 3-5 test messages showing threading and direction
+             - 2 routing rules for testing
+
+          5. **Execute Migration**: Run migration against PostgreSQL database using `psql` or Prisma migrations, verify table creation and constraint enforcement.
+
+          6. **Validate Schema**: Run test queries to confirm:
+             - Foreign key relationships work correctly
+             - Indexes are created
+             - Sample data inserts successfully
+             - Query performance is acceptable on initial test queries
+
+          **Required Inputs / Artifacts:**
+          - PROJECT.md from `/Users/jonathonbyrdziak/sulla/projects/unified-messaging-system/`
+          - PostgreSQL connection credentials (should be available in existing environment)
+          - Database schema design from PRD Architecture section
+
+          **Expected Deliverables:**
+          - `/Users/jonathonbyrdziak/sulla/projects/unified-messaging-system/db/migrations/001_initial_schema.sql`
+          - `/Users/jonathonbyrdziak/sulla/projects/unified-messaging-system/db/seeds/test_data.sql`
+          - Executed migration with all tables created in PostgreSQL
+          - Validation test results confirming schema integrity
+
+          **Definition of Done:**
+
+          * All 6 tables created in PostgreSQL with correct columns, types, and constraints
+
+          * All foreign key relationships properly defined and enforced
+
+          * Performance indexes created on high-query columns
+
+          * Seed data successfully inserted and queryable
+
+          * Schema validated with test queries confirming data integrity and relationships work
+
+          ***
+        threadId: workflow-playbook-node-1772933618324-1772958457229
+        completedAt: 2026-03-08T08:28:22.616Z
+  - id: node-1773084965066
+    type: workflow
+    position:
+      x: 657.671735316105
+      y: 330.86426736543405
+    data:
+      subtype: agent
+      category: agent
+      label: Agent
+      config:
+        agentId: project-resource-document
+        agentName: PRD Manager
+        additionalPrompt: ""
+        userMessage: ""
+        beforePrompt: ""
+        successCriteria: ""
+        completionContract: ""
+edges:
+  - id: vueflow__edge-node-1772933606257-node-1773084965066
+    source: node-1772933606257
+    target: node-1773084965066
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773084965066-node-1772933618324
+    source: node-1773084965066
+    target: node-1772933618324
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+viewport:
+  x: 292.64406616808367
+  y: 270.1926146051445
+  zoom: 0.5
