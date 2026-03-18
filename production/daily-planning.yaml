@@ -271,6 +271,20 @@ nodes:
         awaitResponse: true
         agentId: Observer
         orchestratorPrompt: "Run the daily cleanup workflow. Scan the ~/sulla/ directory for stale files, outdated logs, and temporary artifacts. Archive old daily-logs and remove clearly temporary files. Be conservative — when in doubt, keep."
+  - id: node-project-planning
+    type: workflow
+    position:
+      x: 316
+      y: 2130
+    data:
+      subtype: sub-workflow
+      category: flow-control
+      label: Project Planning
+      config:
+        workflowId: workflow-project-planning
+        awaitResponse: true
+        agentId: project-resource-document
+        orchestratorPrompt: "Run the daily project planning workflow. All goal journals have been updated earlier in the pipeline — read them for the latest goals. Human goals at ~/sulla/identity/human-journal.md, business goals at ~/sulla/identity/business-journal.md, agent goals at ~/sulla/identity/agent-journal.md. Identity files at ~/sulla/identity/. Active projects at ~/sulla/projects/ACTIVE_PROJECTS.md. Propose the top 3 project ideas to the human for approval before creating anything."
 edges:
   - id: e-schedule-split
     source: node-1773759817932
@@ -347,6 +361,10 @@ edges:
   - id: e-prompts-cleanup
     source: node-1773730813990
     target: node-cleanup
+    animated: true
+  - id: e-cleanup-project-planning
+    source: node-cleanup
+    target: node-project-planning
     animated: true
 _status: production
 viewport:
