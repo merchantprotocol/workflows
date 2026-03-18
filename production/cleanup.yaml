@@ -1,9 +1,9 @@
 id: workflow-cleanup
 name: Daily Cleanup
-description: Reviews the sulla directory for stale files, temporary artifacts, and outdated logs — intelligently decides what to keep, archive, or remove based on age, ownership, and relevance to active goals
-version: 1
+description: Reviews the sulla directory for stale files and temporary artifacts — soft-deletes everything to archive first, only permanently removes from archive after 30+ days. Appends to a persistent changelog so every action is traceable.
+version: 2
 createdAt: 2026-03-18T18:00:00.000Z
-updatedAt: 2026-03-18T18:00:00.000Z
+updatedAt: 2026-03-18T19:00:00.000Z
 nodes:
   - id: node-cleanup-trigger
     type: workflow
@@ -36,20 +36,22 @@ nodes:
           using <PROMPT> tags — one per major subdirectory.
 
           Each worker should report files with: path, size, created date, modified date, owner
-          (agent-created vs human-created), and a keep/archive/delete recommendation with reasoning.
+          (agent-created vs human-created), and a keep/archive recommendation with reasoning.
 
           **Directories to scan:**
           - ~/sulla/daily-logs/ — observation logs, thinking outputs, prompt logs
           - ~/sulla/projects/ — agent-created project workspaces
-          - ~/sulla/identity/ — identity files and journals (NEVER delete these)
+          - ~/sulla/archive/ — previously archived files (check age for permanent deletion)
+          - ~/sulla/identity/ — identity files and journals (NEVER touch these)
 
-          **Classification rules:**
-          - daily-logs older than 14 days → archive candidate
-          - daily-logs older than 30 days → delete candidate
-          - Empty or near-empty files (< 100 bytes) → delete candidate
-          - Identity files and journals → ALWAYS keep (never touch)
-          - Project files with no modifications in 30+ days → archive candidate
-          - Temporary/scratch files (tmp, .bak, .old) → delete candidate
+          **Classification rules — everything is archive-first, never direct delete:**
+          - daily-logs older than 14 days → archive
+          - Empty or near-empty files (< 100 bytes) that are older than 3 days → archive
+          - Project files with no modifications in 30+ days → archive
+          - Temporary/scratch files (tmp, .bak, .old) older than 3 days → archive
+          - Files in ~/sulla/archive/ older than 30 days → permanent delete candidate
+          - Identity files and journals → ALWAYS keep (never touch, never archive)
+          - Today's files and anything < 7 days old → keep
           - Files currently referenced by active goals → keep
 
           **Important:** Read the goal journals at ~/sulla/identity/human-journal.md,
@@ -57,7 +59,7 @@ nodes:
           projects and logs are still relevant to active work.
 
           Output a structured JSON report of all files with their classifications.
-        successCriteria: A complete file inventory with keep/archive/delete classifications
+        successCriteria: A complete file inventory with keep/archive/purge classifications
         completionContract: Exit when the full scan report is ready
   - id: node-cleanup-review
     type: workflow
@@ -70,21 +72,20 @@ nodes:
       label: Review & Approve Plan
       config:
         prompt: >
-          Review the file scan results from the previous step. Create a cleanup execution plan
-          that lists exactly which files to archive and which to delete. Be conservative —
-          when in doubt, keep the file.
+          Review the file scan results from the previous step. Create a cleanup execution plan.
+          Be conservative — when in doubt, keep the file.
 
           **Hard rules (never violate):**
-          - NEVER delete or archive anything in ~/sulla/identity/
-          - NEVER delete today's daily-logs
-          - NEVER delete files less than 7 days old
-          - NEVER delete files referenced by active goals or active projects
-          - Archive means: move to ~/sulla/archive/YYYY-MM-DD/
-          - Only delete files that have already been archived for 30+ days OR are clearly temporary
+          - NEVER touch anything in ~/sulla/identity/
+          - NEVER archive today's daily-logs or anything less than 7 days old
+          - NEVER archive files referenced by active goals or active projects
+          - ALL removals from live directories are soft-deletes (move to ~/sulla/archive/)
+          - Only permanently delete files that have been sitting in ~/sulla/archive/ for 30+ days
+          - Preserve relative directory structure when archiving (e.g., daily-logs/2026-03-01/human/ → archive/daily-logs/2026-03-01/human/)
 
           Produce two lists:
-          1. **Archive list** — files to move to ~/sulla/archive/
-          2. **Delete list** — files safe to permanently remove
+          1. **Archive list** — files to soft-delete (move from live to ~/sulla/archive/)
+          2. **Purge list** — files already in ~/sulla/archive/ for 30+ days, safe to permanently remove
 
           If nothing needs cleanup, say so and skip execution.
   - id: node-cleanup-execute
@@ -103,18 +104,21 @@ nodes:
         orchestratorInstructions: >
           Execute the cleanup plan from the previous step. The agent should:
 
-          1. Create the archive directory if needed: mkdir -p ~/sulla/archive/$(date +%Y-%m-%d)/
-          2. Move archive-candidate files to the archive directory, preserving relative paths
-          3. Delete files on the delete list
-          4. Log every action taken
+          1. Create the archive directory preserving structure: mkdir -p ~/sulla/archive/{relative-path}/
+          2. Move archive-list files into ~/sulla/archive/, preserving their relative path from ~/sulla/
+          3. Permanently delete purge-list files (only files already in archive for 30+ days)
+          4. Track every single action for the changelog
 
           If the review step said nothing needs cleanup, do nothing and exit.
 
-          **Safety:** Before deleting any file, verify it matches the approved delete list exactly.
-          Do NOT delete anything not on the list. If in doubt, archive instead of delete.
-        successCriteria: All cleanup actions executed and logged
-        completionContract: Exit when cleanup is complete and a summary log is written
-  - id: node-cleanup-log
+          **Safety:** If in doubt about ANY file, archive it instead of purging. We can always
+          recover from archive. We cannot recover from a permanent delete.
+
+          Return a structured summary of all actions taken: files archived (with source → dest paths),
+          files purged, files skipped, and any errors encountered.
+        successCriteria: All cleanup actions executed successfully
+        completionContract: Exit when cleanup is complete and action summary is ready
+  - id: node-cleanup-changelog
     type: workflow
     position:
       x: 400
@@ -122,19 +126,39 @@ nodes:
     data:
       subtype: orchestrator-prompt
       category: agent
-      label: Write Cleanup Log
+      label: Append to Changelog
       config:
         prompt: >
-          Write a cleanup summary to the daily observation log at
-          ~/sulla/daily-logs/$(date +%Y-%m-%d)/cleanup-log.md with:
+          Append a new entry to the persistent cleanup changelog at ~/sulla/archive/CHANGELOG.md.
+          This file is the permanent history of all cleanup operations. Create it if it doesn't exist.
 
-          - Total files scanned
-          - Files archived (count and total size)
-          - Files deleted (count and total size)
-          - Files kept (count)
-          - Any issues encountered
+          **Format for each entry (append, never overwrite):**
 
-          Keep it concise.
+          ```
+          ## YYYY-MM-DD HH:MM — Daily Cleanup
+
+          **Archived** (soft-deleted from live → archive):
+          - `{source-path}` → `{archive-path}` ({size}, {age} days old, reason: {why})
+          - ...
+
+          **Purged** (permanently removed from archive):
+          - `{path}` ({size}, archived {N} days ago, reason: aged out)
+          - ...
+
+          **Kept** (reviewed but retained):
+          - {count} files kept in live directories
+          - {count} files kept in archive (not yet 30 days)
+
+          **Stats:** Scanned {N} files, archived {N}, purged {N}, kept {N}
+          **Disk freed:** {size}
+
+          ---
+          ```
+
+          Also write a brief summary to today's daily log at
+          ~/sulla/daily-logs/$(date +%Y-%m-%d)/cleanup-log.md.
+
+          If nothing was cleaned up, still log an entry saying "No cleanup needed" with the scan count.
   - id: node-cleanup-done
     type: workflow
     position:
@@ -159,12 +183,12 @@ edges:
     source: node-cleanup-review
     target: node-cleanup-execute
     animated: true
-  - id: e-cleanup-execute-log
+  - id: e-cleanup-execute-changelog
     source: node-cleanup-execute
-    target: node-cleanup-log
+    target: node-cleanup-changelog
     animated: true
-  - id: e-cleanup-log-done
-    source: node-cleanup-log
+  - id: e-cleanup-changelog-done
+    source: node-cleanup-changelog
     target: node-cleanup-done
     animated: true
 _status: production
