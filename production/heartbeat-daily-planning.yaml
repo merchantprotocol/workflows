@@ -3,7 +3,7 @@ name: Heartbeat Daily Planning
 description: This planning process runs by itself daily
 version: 1
 createdAt: 2026-03-17T05:24:02.351Z
-updatedAt: 2026-03-17T20:50:58.581Z
+updatedAt: 2026-03-18T03:13:47.463Z
 nodes:
   - id: node-1773725802728
     type: workflow
@@ -51,7 +51,7 @@ nodes:
       category: flow-control
       label: Think Human
       config:
-        workflowId: null
+        workflowId: workflow-thinker
         awaitResponse: true
   - id: node-1773727650225
     type: workflow
@@ -99,7 +99,7 @@ nodes:
       category: flow-control
       label: Think Business
       config:
-        workflowId: null
+        workflowId: workflow-thinker
         awaitResponse: true
   - id: node-1773728205625
     type: workflow
@@ -123,7 +123,7 @@ nodes:
       category: flow-control
       label: Think World
       config:
-        workflowId: null
+        workflowId: workflow-thinker
         awaitResponse: true
   - id: node-1773729507379
     type: workflow
@@ -342,6 +342,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: 231.58447496888203
-  y: 11.181125709325727
-  zoom: 0.6292119245325428
+  x: -114.66145726580527
+  y: -44.133485557185
+  zoom: 1.0684992812226841

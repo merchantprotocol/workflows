@@ -1,0 +1,460 @@
+id: workflow-thinker
+name: Thinker
+description: Analyze human identity through 10 specialized lenses, compile into strategic plan
+version: 2
+createdAt: 2026-03-17T21:15:00.000Z
+updatedAt: 2026-03-18T03:11:28.449Z
+nodes:
+  - id: node-1000000000001
+    type: workflow
+    position:
+      x: 436.79498786192727
+      y: -222.1857096836174
+    data:
+      subtype: chat-app
+      category: trigger
+      label: Trigger
+      config:
+        triggerType: chat-app
+        triggerDescription: Entry point for Thinker
+  - id: node-1000000000002
+    type: workflow
+    position:
+      x: 488.1323325670639
+      y: 36.012030233369444
+    data:
+      subtype: parallel
+      category: flow-control
+      label: Batch Workers
+      config: {}
+  - id: node-1000000000004
+    type: workflow
+    position:
+      x: 88
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Life Stage
+      config:
+        agentId: thinker-worker
+        agentName: Life Stage Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract signals about current life/career stage, time/energy constraints, resources, risk tolerance, current season (building/consolidating/exploring/recovering). Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/life-stage.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000005
+    type: workflow
+    position:
+      x: 188
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Goals & Desires
+      config:
+        agentId: thinker-worker
+        agentName: Goals Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract stated or strongly implied goals, desires, short-term priorities, long-term vision, wished-for capabilities, what they want agents/tools to handle. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/goals.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000006
+    type: workflow
+    position:
+      x: 288
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Pains & Obstacles
+      config:
+        agentId: thinker-worker
+        agentName: Pains Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract pain points, blockers, recurring frustrations, skill gaps, tool friction, emotional burdens, failed attempts. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/pains.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000007
+    type: workflow
+    position:
+      x: 388
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Patterns & Habits
+      config:
+        agentId: thinker-worker
+        agentName: Patterns Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract daily/weekly rhythms, task approach, learning style, collaboration patterns, priorities vs neglect, procrastination triggers, tool usage habits. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/patterns.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000008
+    type: workflow
+    position:
+      x: 488
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Transformations
+      config:
+        agentId: thinker-worker
+        agentName: Transformations Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract skills being built, mindset shifts, habits forming/breaking, role changes, recent differences vs past. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/transformations.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000009
+    type: workflow
+    position:
+      x: 588
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Emotional State
+      config:
+        agentId: thinker-worker
+        agentName: Emotional Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract observed mood, energy, stress, confidence, burnout/disengagement signals, sources of joy/energy, emotional subtext. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/emotional.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000010
+    type: workflow
+    position:
+      x: 688
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Financial State
+      config:
+        agentId: thinker-worker
+        agentName: Financial Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract financial situation, revenue/spending patterns, pressures, how money influences decisions, financial goals/constraints. Only include with clear evidence — mark speculative inferences. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/financial.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000011
+    type: workflow
+    position:
+      x: 788
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Related Entities
+      config:
+        agentId: thinker-worker
+        agentName: Entities Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract mentions of influencing people/businesses/entities (collaborators, clients, family, competitors). Note nature, direction of influence, dependencies, tensions/alignment. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/entities.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1000000000012
+    type: workflow
+    position:
+      x: 888
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: Irrelevance Filter
+      config:
+        agentId: thinker-worker
+        agentName: Irrelevance Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Identify routine, transient, or low-value observations that should NOT be included in the identity file. List them with brief reasoning why they are irrelevant for long-term planning. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/irrelevance.md
+        successCriteria: Markdown analysis listing filtered items
+        completionContract: Exit when analysis file is complete
+  - id: node-1773786723809
+    type: workflow
+    position:
+      x: 500
+      y: 450
+    data:
+      subtype: merge
+      category: flow-control
+      label: Merge
+      config:
+        strategy: wait-all
+  - id: node-1773787870504
+    type: workflow
+    position:
+      x: 490
+      y: 602
+    data:
+      subtype: loop
+      category: flow-control
+      label: Process Each Lens
+      config:
+        loopMode: for-each
+        maxIterations: 10
+        condition: ""
+        conditionMode: template
+  - id: node-1773793960431
+    type: workflow
+    position:
+      x: 506.04478573847473
+      y: 847.8591737651985
+    data:
+      subtype: orchestrator-prompt
+      category: agent
+      label: Prompt
+      config:
+        prompt: |-
+          The following lens analysis has been completed by a sub-agent:
+
+          [{{loop.currentItem.label}}]:
+          {{loop.currentItem.result}}
+
+          Review this analysis and use it to update the identity file according to the identity-file-management skill.
+  - id: node-1773800000001
+    type: workflow
+    position:
+      x: 287.97724601971555
+      y: 795.2627716678345
+    data:
+      subtype: loop
+      category: flow-control
+      label: Custom Lenses
+      config:
+        loopMode: ask-orchestrator
+        maxIterations: 10
+        condition: ""
+        conditionMode: template
+        orchestratorPrompt: You have processed the 10 default identity lenses. Review the identity file and the lens analyses. Are there additional perspectives that would strengthen this identity profile? How many additional custom lenses do you want to run? Respond with just a number (0 if none needed).
+  - id: node-1773800000003
+    type: workflow
+    position:
+      x: 290.1719182122846
+      y: 928.6764024484631
+    data:
+      subtype: agent
+      category: agent
+      label: Custom Lens Worker
+      config:
+        agentId: thinker-worker
+        agentName: Custom Lens
+        additionalPrompt: ""
+        orchestratorInstructions: "{{Next Lens.result}}"
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
+  - id: node-1773800000004
+    type: workflow
+    position:
+      x: 290.35576569196667
+      y: 1074.9525964842082
+    data:
+      subtype: orchestrator-prompt
+      category: agent
+      label: Process Custom Lens
+      config:
+        prompt: |-
+          The custom lens analysis is complete:
+
+          {{Custom Lens Worker.result}}
+
+          Review this analysis and use it to update the identity file according to the identity-file-management skill.
+  - id: node-1000000000014
+    type: workflow
+    position:
+      x: 116.29907166407986
+      y: 1004.5663121577709
+    data:
+      subtype: agent
+      category: agent
+      label: Thinker Orchestrator
+      config:
+        agentId: thinker
+        agentName: Thinker Orchestrator
+        additionalPrompt: ""
+        orchestratorInstructions: All lens analyses (default and custom) have been processed. Compile a final strategic synthesis. Read ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/ and the updated identity file. Write a strategic plan to ~/sulla/identity/thinking-strategy.md that captures cross-cutting themes, contradictions between lenses, and actionable priorities.
+        successCriteria: Strategic plan document created
+        completionContract: Exit when strategy file is complete
+  - id: node-1773795698413
+    type: workflow
+    position:
+      x: 504.75598931778734
+      y: 713.9308259575847
+    data:
+      subtype: agent
+      category: agent
+      label: Agent
+      config:
+        agentId: null
+        agentName: ""
+        additionalPrompt: ""
+        orchestratorInstructions: ""
+        successCriteria: ""
+        completionContract: ""
+  - id: node-1773798805105
+    type: workflow
+    position:
+      x: 457.05672957144736
+      y: -85.35022250165983
+    data:
+      subtype: tool-call
+      category: agent
+      label: Load Identity Skill
+      config:
+        toolName: load_skill
+        defaults:
+          skill_name: identity-file-management
+        description: ""
+edges:
+  - id: e3
+    source: node-1000000000002
+    target: node-1000000000004
+    animated: true
+  - id: e4
+    source: node-1000000000002
+    target: node-1000000000005
+    animated: true
+  - id: e5
+    source: node-1000000000002
+    target: node-1000000000006
+    animated: true
+  - id: e6
+    source: node-1000000000002
+    target: node-1000000000007
+    animated: true
+  - id: e7
+    source: node-1000000000002
+    target: node-1000000000008
+    animated: true
+  - id: e8
+    source: node-1000000000002
+    target: node-1000000000009
+    animated: true
+  - id: e9
+    source: node-1000000000002
+    target: node-1000000000010
+    animated: true
+  - id: e10
+    source: node-1000000000002
+    target: node-1000000000011
+    animated: true
+  - id: e11
+    source: node-1000000000002
+    target: node-1000000000012
+    animated: true
+  - id: e-life-stage-merge
+    source: node-1000000000004
+    target: node-1773786723809
+    animated: true
+  - id: e-goals-merge
+    source: node-1000000000005
+    target: node-1773786723809
+    animated: true
+  - id: e-pains-merge
+    source: node-1000000000006
+    target: node-1773786723809
+    animated: true
+  - id: e-patterns-merge
+    source: node-1000000000007
+    target: node-1773786723809
+    animated: true
+  - id: e-transformations-merge
+    source: node-1000000000008
+    target: node-1773786723809
+    animated: true
+  - id: e-emotional-merge
+    source: node-1000000000009
+    target: node-1773786723809
+    animated: true
+  - id: e-financial-merge
+    source: node-1000000000010
+    target: node-1773786723809
+    animated: true
+  - id: e-entities-merge
+    source: node-1000000000011
+    target: node-1773786723809
+    animated: true
+  - id: e-irrelevance-merge
+    source: node-1000000000012
+    target: node-1773786723809
+    animated: true
+  - id: vueflow__edge-node-1773786723809-node-1773787870504loop-entry
+    source: node-1773786723809
+    target: node-1773787870504
+    sourceHandle: null
+    targetHandle: loop-entry
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773793960431-node-1773787870504loop-back
+    source: node-1773793960431
+    target: node-1773787870504
+    sourceHandle: null
+    targetHandle: loop-back
+    label: ""
+    animated: true
+  - id: vueflow__edge-loop1-exit-loop2-entry
+    source: node-1773787870504
+    target: node-1773800000001
+    sourceHandle: loop-exit
+    targetHandle: loop-entry
+    label: ""
+    animated: true
+  - id: vueflow__edge-worker-process
+    source: node-1773800000003
+    target: node-1773800000004
+    animated: true
+  - id: vueflow__edge-process-loop2-back
+    source: node-1773800000004
+    target: node-1773800000001
+    sourceHandle: null
+    targetHandle: loop-back
+    label: ""
+    animated: true
+  - id: vueflow__edge-loop2-exit-thinker
+    source: node-1773800000001
+    target: node-1000000000014
+    sourceHandle: loop-exit
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773787870504loop-start-node-1773795698413
+    source: node-1773787870504
+    target: node-1773795698413
+    sourceHandle: loop-start
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773795698413-node-1773793960431
+    source: node-1773795698413
+    target: node-1773793960431
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773798805105-node-1000000000002
+    source: node-1773798805105
+    target: node-1000000000002
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1000000000001-node-1773798805105
+    source: node-1000000000001
+    target: node-1773798805105
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773800000001loop-start-node-1773800000003
+    source: node-1773800000001
+    target: node-1773800000003
+    sourceHandle: loop-start
+    targetHandle: null
+    label: ""
+    animated: true
+_status: production
+viewport:
+  x: 12.090607583758157
+  y: 108.28139999374895
+  zoom: 0.6942896736531622
