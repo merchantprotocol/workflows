@@ -3,7 +3,7 @@ name: Heartbeat Daily Planning
 description: This planning process runs by itself daily
 version: 1
 createdAt: 2026-03-17T05:24:02.351Z
-updatedAt: 2026-03-18T03:13:47.463Z
+updatedAt: 2026-03-18T03:14:24.751Z
 nodes:
   - id: node-1773725802728
     type: workflow
@@ -29,6 +29,7 @@ nodes:
       config:
         workflowId: workflow-observe-human
         awaitResponse: true
+        agentId: Observer
   - id: node-1773726630045
     type: workflow
     position:
@@ -53,6 +54,7 @@ nodes:
       config:
         workflowId: workflow-thinker
         awaitResponse: true
+        agentId: Thinker
   - id: node-1773727650225
     type: workflow
     position:
@@ -89,6 +91,7 @@ nodes:
       config:
         workflowId: workflow-observe-business
         awaitResponse: true
+        agentId: Observer
   - id: node-1773727873275
     type: workflow
     position:
@@ -101,6 +104,7 @@ nodes:
       config:
         workflowId: workflow-thinker
         awaitResponse: true
+        agentId: Thinker
   - id: node-1773728205625
     type: workflow
     position:
@@ -113,6 +117,7 @@ nodes:
       config:
         workflowId: workflow-observe-world
         awaitResponse: true
+        agentId: Observer
   - id: node-1773728214276
     type: workflow
     position:
@@ -125,6 +130,7 @@ nodes:
       config:
         workflowId: workflow-thinker
         awaitResponse: true
+        agentId: Thinker
   - id: node-1773729507379
     type: workflow
     position:
@@ -342,6 +348,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: -114.66145726580527
-  y: -44.133485557185
+  x: -238.6614572658052
+  y: -199.13348555718494
   zoom: 1.0684992812226841

@@ -3,7 +3,7 @@ name: Thinker
 description: Analyze human identity through 10 specialized lenses, compile into strategic plan
 version: 2
 createdAt: 2026-03-17T21:15:00.000Z
-updatedAt: 2026-03-18T03:11:28.449Z
+updatedAt: 2026-03-18T03:14:41.529Z
 nodes:
   - id: node-1000000000001
     type: workflow
@@ -286,8 +286,8 @@ nodes:
       category: agent
       label: Agent
       config:
-        agentId: null
-        agentName: ""
+        agentId: thinker-worker
+        agentName: Thinker Worker
         additionalPrompt: ""
         orchestratorInstructions: ""
         successCriteria: ""
@@ -455,6 +455,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: 12.090607583758157
-  y: 108.28139999374895
-  zoom: 0.6942896736531622
+  x: -104.66145726580515
+  y: -338.13348555718494
+  zoom: 1.0684992812226841
