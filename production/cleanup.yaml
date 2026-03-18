@@ -1,0 +1,174 @@
+id: workflow-cleanup
+name: Daily Cleanup
+description: Reviews the sulla directory for stale files, temporary artifacts, and outdated logs — intelligently decides what to keep, archive, or remove based on age, ownership, and relevance to active goals
+version: 1
+createdAt: 2026-03-18T18:00:00.000Z
+updatedAt: 2026-03-18T18:00:00.000Z
+nodes:
+  - id: node-cleanup-trigger
+    type: workflow
+    position:
+      x: 400
+      y: 0
+    data:
+      subtype: chat-app
+      category: trigger
+      label: Trigger
+      config:
+        triggerType: chat-app
+        triggerDescription: Triggered at the end of the daily planning pipeline or manually
+  - id: node-cleanup-scan
+    type: workflow
+    position:
+      x: 400
+      y: 150
+    data:
+      subtype: agent
+      category: agent
+      label: Scan & Classify Files
+      config:
+        agentId: observer
+        agentName: File Scanner
+        additionalPrompt: ""
+        orchestratorInstructions: >
+          Scan the ~/sulla/ directory and classify files for cleanup. The agent should use exec
+          with find/stat commands to build a complete inventory. Delegate to parallel workers
+          using <PROMPT> tags — one per major subdirectory.
+
+          Each worker should report files with: path, size, created date, modified date, owner
+          (agent-created vs human-created), and a keep/archive/delete recommendation with reasoning.
+
+          **Directories to scan:**
+          - ~/sulla/daily-logs/ — observation logs, thinking outputs, prompt logs
+          - ~/sulla/projects/ — agent-created project workspaces
+          - ~/sulla/identity/ — identity files and journals (NEVER delete these)
+
+          **Classification rules:**
+          - daily-logs older than 14 days → archive candidate
+          - daily-logs older than 30 days → delete candidate
+          - Empty or near-empty files (< 100 bytes) → delete candidate
+          - Identity files and journals → ALWAYS keep (never touch)
+          - Project files with no modifications in 30+ days → archive candidate
+          - Temporary/scratch files (tmp, .bak, .old) → delete candidate
+          - Files currently referenced by active goals → keep
+
+          **Important:** Read the goal journals at ~/sulla/identity/human-journal.md,
+          business-journal.md, and agent-journal.md (if they exist) to understand which
+          projects and logs are still relevant to active work.
+
+          Output a structured JSON report of all files with their classifications.
+        successCriteria: A complete file inventory with keep/archive/delete classifications
+        completionContract: Exit when the full scan report is ready
+  - id: node-cleanup-review
+    type: workflow
+    position:
+      x: 400
+      y: 350
+    data:
+      subtype: orchestrator-prompt
+      category: agent
+      label: Review & Approve Plan
+      config:
+        prompt: >
+          Review the file scan results from the previous step. Create a cleanup execution plan
+          that lists exactly which files to archive and which to delete. Be conservative —
+          when in doubt, keep the file.
+
+          **Hard rules (never violate):**
+          - NEVER delete or archive anything in ~/sulla/identity/
+          - NEVER delete today's daily-logs
+          - NEVER delete files less than 7 days old
+          - NEVER delete files referenced by active goals or active projects
+          - Archive means: move to ~/sulla/archive/YYYY-MM-DD/
+          - Only delete files that have already been archived for 30+ days OR are clearly temporary
+
+          Produce two lists:
+          1. **Archive list** — files to move to ~/sulla/archive/
+          2. **Delete list** — files safe to permanently remove
+
+          If nothing needs cleanup, say so and skip execution.
+  - id: node-cleanup-execute
+    type: workflow
+    position:
+      x: 400
+      y: 500
+    data:
+      subtype: agent
+      category: agent
+      label: Execute Cleanup
+      config:
+        agentId: observer
+        agentName: Cleanup Executor
+        additionalPrompt: ""
+        orchestratorInstructions: >
+          Execute the cleanup plan from the previous step. The agent should:
+
+          1. Create the archive directory if needed: mkdir -p ~/sulla/archive/$(date +%Y-%m-%d)/
+          2. Move archive-candidate files to the archive directory, preserving relative paths
+          3. Delete files on the delete list
+          4. Log every action taken
+
+          If the review step said nothing needs cleanup, do nothing and exit.
+
+          **Safety:** Before deleting any file, verify it matches the approved delete list exactly.
+          Do NOT delete anything not on the list. If in doubt, archive instead of delete.
+        successCriteria: All cleanup actions executed and logged
+        completionContract: Exit when cleanup is complete and a summary log is written
+  - id: node-cleanup-log
+    type: workflow
+    position:
+      x: 400
+      y: 650
+    data:
+      subtype: orchestrator-prompt
+      category: agent
+      label: Write Cleanup Log
+      config:
+        prompt: >
+          Write a cleanup summary to the daily observation log at
+          ~/sulla/daily-logs/$(date +%Y-%m-%d)/cleanup-log.md with:
+
+          - Total files scanned
+          - Files archived (count and total size)
+          - Files deleted (count and total size)
+          - Files kept (count)
+          - Any issues encountered
+
+          Keep it concise.
+  - id: node-cleanup-done
+    type: workflow
+    position:
+      x: 400
+      y: 800
+    data:
+      subtype: response
+      category: io
+      label: Done
+      config:
+        responseTemplate: Daily cleanup complete.
+edges:
+  - id: e-cleanup-trigger-scan
+    source: node-cleanup-trigger
+    target: node-cleanup-scan
+    animated: true
+  - id: e-cleanup-scan-review
+    source: node-cleanup-scan
+    target: node-cleanup-review
+    animated: true
+  - id: e-cleanup-review-execute
+    source: node-cleanup-review
+    target: node-cleanup-execute
+    animated: true
+  - id: e-cleanup-execute-log
+    source: node-cleanup-execute
+    target: node-cleanup-log
+    animated: true
+  - id: e-cleanup-log-done
+    source: node-cleanup-log
+    target: node-cleanup-done
+    animated: true
+_status: production
+viewport:
+  x: 0
+  y: 0
+  zoom: 1

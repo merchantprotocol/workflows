@@ -267,8 +267,10 @@ nodes:
       category: flow-control
       label: Clean Up
       config:
-        workflowId: null
+        workflowId: workflow-cleanup
         awaitResponse: true
+        agentId: Observer
+        orchestratorPrompt: "Run the daily cleanup workflow. Scan the ~/sulla/ directory for stale files, outdated logs, and temporary artifacts. Archive old daily-logs and remove clearly temporary files. Be conservative — when in doubt, keep."
 edges:
   - id: e-schedule-split
     source: node-1773759817932
