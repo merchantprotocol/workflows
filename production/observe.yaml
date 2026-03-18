@@ -1,0 +1,59 @@
+id: workflow-observe
+name: Observe
+description: Universal observation workflow — loads domain-specific observe skill and delegates to parallel observer agents
+version: 1
+createdAt: 2026-03-18T04:00:00.000Z
+updatedAt: 2026-03-18T04:00:00.000Z
+nodes:
+  - id: node-2000000000001
+    type: workflow
+    position: { x: 500, y: 50 }
+    data:
+      subtype: chat-app
+      category: trigger
+      label: Trigger
+      config:
+        triggerType: chat-app
+        triggerDescription: Receives domain and log path from parent workflow orchestrator
+
+  - id: node-2000000000002
+    type: workflow
+    position: { x: 500, y: 200 }
+    data:
+      subtype: agent
+      category: agent
+      label: Observe
+      config:
+        agentId: observer
+        agentName: Observer
+        additionalPrompt: ""
+        orchestratorInstructions: >-
+          You are the observation orchestrator. The trigger message tells you which domain to observe and where to write logs.
+
+          First, determine the domain from the trigger message (human, business, world, or self).
+
+          Then load the corresponding observe skill using the load_skill tool. For example if the domain is "human", load the skill "observe-human". Load the skill only — do NOT execute it. Wait until the skill is loaded.
+
+          Once the skill is loaded, read the topics and instructions it provides. For each observation topic in the skill, create a <PROMPT> tag that instructs an observer agent to carry out that observation and write its findings to the log path specified in the trigger message.
+
+          Each observer agent should write its own log file at the path provided.
+        successCriteria: All observation topics from the skill have been dispatched and completed
+        completionContract: Exit when all observer agents have written their log files
+
+  - id: node-2000000000003
+    type: workflow
+    position: { x: 500, y: 400 }
+    data:
+      subtype: response
+      category: io
+      label: Done
+      config:
+        responseTemplate: Observation complete for the requested domain.
+
+edges:
+  - id: e-trigger-to-observe
+    source: node-2000000000001
+    target: node-2000000000002
+  - id: e-observe-to-done
+    source: node-2000000000002
+    target: node-2000000000003
