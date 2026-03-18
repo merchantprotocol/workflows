@@ -212,7 +212,7 @@ nodes:
         workflowId: workflow-observe
         awaitResponse: true
         agentId: Observer
-        orchestratorPrompt: "Run the observe workflow for the agent/self domain. FIRST read the real-time observation log at ~/sulla/daily-logs/{{YYYY-MM-DD}}/observations.md — these are observations collected throughout the day during live conversations, including self-observations about agent performance. Load the agent-observation skill for observation lenses. Observe Sulla's own recent conversations through the lenses of: goal implementation, information gathering, persuasion effectiveness, trust/relationship health, execution quality, and strategic alignment. The human goal journal is at ~/sulla/identity/human-journal.md and business goal journal at ~/sulla/identity/business-journal.md — use these to understand what goals the agent should have been advancing. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/"
+        orchestratorPrompt: "Run the observe workflow for the agent domain. FIRST read the real-time observation log at ~/sulla/daily-logs/{{YYYY-MM-DD}}/observations.md — these are observations collected throughout the day during live conversations, including self-observations about agent performance. The human goal journal is at ~/sulla/identity/human-journal.md and business goal journal at ~/sulla/identity/business-journal.md — use these to understand what goals the agent should have been advancing. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/"
   - id: node-1773804121904
     type: workflow
     position:
