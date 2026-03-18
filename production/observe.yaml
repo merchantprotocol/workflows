@@ -27,7 +27,7 @@ nodes:
       category: agent
       label: Load Skill
       config:
-        prompt: The trigger message below tells you the domain to observe and the log path. Determine the domain (human, business, world, or self) and load the corresponding observe skill using the load_skill tool — for example if the domain is "human", load the skill "observe-human". Load the skill only — do NOT execute it, do NOT start observing yet. Just confirm the skill is loaded and wait for further instructions.
+        prompt: The trigger message below tells you the domain to observe and the log path. Determine the domain (human, business, world, or agent) and load the corresponding observe skill using the load_skill tool — for example if the domain is "human", load the skill "observe-human". If the domain is "agent", load the skill "observe-agent". Load the skill only — do NOT execute it, do NOT start observing yet. Just confirm the skill is loaded and wait for further instructions.
   - id: node-2000000000002
     type: workflow
     position:
