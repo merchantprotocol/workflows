@@ -1,9 +1,9 @@
 id: workflow-cleanup
 name: Daily Cleanup
-description: Reviews the sulla directory for stale files and temporary artifacts — soft-deletes everything to archive first, only permanently removes from archive after 30+ days. Appends to a persistent changelog so every action is traceable.
-version: 2
+description: Investigates file provenance by searching conversation logs, then soft-deletes stale files to archive. Only permanently removes from archive after 30+ days. Appends to a persistent changelog.
+version: 3
 createdAt: 2026-03-18T18:00:00.000Z
-updatedAt: 2026-03-18T19:00:00.000Z
+updatedAt: 2026-03-18T20:00:00.000Z
 nodes:
   - id: node-cleanup-trigger
     type: workflow
@@ -17,7 +17,7 @@ nodes:
       config:
         triggerType: chat-app
         triggerDescription: Triggered at the end of the daily planning pipeline or manually
-  - id: node-cleanup-scan
+  - id: node-cleanup-inventory
     type: workflow
     position:
       x: 400
@@ -25,66 +25,116 @@ nodes:
     data:
       subtype: agent
       category: agent
-      label: Scan & Classify Files
+      label: Build File Inventory
       config:
         agentId: observer
-        agentName: File Scanner
+        agentName: File Inventory Builder
         additionalPrompt: ""
         orchestratorInstructions: >
-          Scan the ~/sulla/ directory and classify files for cleanup. The agent should use exec
-          with find/stat commands to build a complete inventory. Delegate to parallel workers
-          using <PROMPT> tags — one per major subdirectory.
-
-          Each worker should report files with: path, size, created date, modified date, owner
-          (agent-created vs human-created), and a keep/archive recommendation with reasoning.
+          Build an inventory of all files in ~/sulla/ that are candidates for cleanup.
+          Use exec with find/stat commands to list files with their paths, sizes, created
+          dates, and modified dates.
 
           **Directories to scan:**
           - ~/sulla/daily-logs/ — observation logs, thinking outputs, prompt logs
           - ~/sulla/projects/ — agent-created project workspaces
-          - ~/sulla/archive/ — previously archived files (check age for permanent deletion)
-          - ~/sulla/identity/ — identity files and journals (NEVER touch these)
+          - ~/sulla/archive/ — previously archived files (check age for permanent purge)
 
-          **Classification rules — everything is archive-first, never direct delete:**
-          - daily-logs older than 14 days → archive
-          - Empty or near-empty files (< 100 bytes) that are older than 3 days → archive
-          - Project files with no modifications in 30+ days → archive
-          - Temporary/scratch files (tmp, .bak, .old) older than 3 days → archive
-          - Files in ~/sulla/archive/ older than 30 days → permanent delete candidate
-          - Identity files and journals → ALWAYS keep (never touch, never archive)
-          - Today's files and anything < 7 days old → keep
-          - Files currently referenced by active goals → keep
+          **Exclude from inventory (never touch):**
+          - ~/sulla/identity/ — identity files and journals
+          - ~/sulla/agents/ — agent configurations
+          - ~/sulla/skills/ — skill definitions
+          - ~/sulla/workflows/ — workflow definitions
+          - ~/sulla/integrations/ — integration configs
+          - Files less than 7 days old (too recent to consider)
 
-          **Important:** Read the goal journals at ~/sulla/identity/human-journal.md,
-          business-journal.md, and agent-journal.md (if they exist) to understand which
-          projects and logs are still relevant to active work.
+          Output a structured list of candidate files with: path, size, created date,
+          modified date, and age in days. Group by directory. This inventory feeds into
+          the provenance investigation step.
+        successCriteria: A complete file inventory of cleanup candidates
+        completionContract: Exit when the inventory is ready
+  - id: node-cleanup-provenance
+    type: workflow
+    position:
+      x: 400
+      y: 330
+    data:
+      subtype: agent
+      category: agent
+      label: Investigate File Provenance
+      config:
+        agentId: observer
+        agentName: Provenance Investigator
+        additionalPrompt: ""
+        orchestratorInstructions: >
+          For each file in the inventory from the previous step, investigate WHO created it
+          and WHY by searching past conversation logs. This is the most important step —
+          understanding provenance determines whether a file is safe to archive.
 
-          Output a structured JSON report of all files with their classifications.
-        successCriteria: A complete file inventory with keep/archive/purge classifications
-        completionContract: Exit when the full scan report is ready
+          Delegate to parallel workers using <PROMPT> tags — one per batch of files or
+          per directory grouping. Each worker should:
+
+          1. **Search conversation logs** using `file_search` with the filename and path
+             as search queries. Look for the moment the file was created — the conversation
+             will show the context, the user request that led to it, and the agent's reasoning.
+
+          2. **Search daily observation logs** in ~/sulla/daily-logs/ for references to
+             the file — grep or file_search for the filename across observation and thinking logs.
+
+          3. **Check if any active goal references the file** — search the goal journals
+             at ~/sulla/identity/human-journal.md, business-journal.md, agent-journal.md
+             (if they exist) for the filename or the project it belongs to.
+
+          4. **Classify the file's provenance:**
+             - `human-requested` — created because the human explicitly asked for it
+             - `agent-initiated` — created by the agent as part of a workflow or autonomous task
+             - `pipeline-output` — produced by the daily planning pipeline (logs, thinking, etc.)
+             - `unknown` — no conversation evidence found (older file, logs may be gone)
+
+          5. **Recommend an action based on provenance + age:**
+             - `keep` — still relevant to active goals, recently referenced, or human-requested and recent
+             - `archive` — no longer actively referenced, goal completed, or pipeline output older than 14 days
+             - `purge` — file is already in ~/sulla/archive/ for 30+ days
+
+          For each file, output:
+          - path, size, age
+          - provenance (who created it, why, which conversation)
+          - evidence (quote or reference to the conversation/log where creation was found)
+          - recommendation (keep/archive/purge) with reasoning
+
+          **Key principle:** If you find evidence that a file was created for an active goal
+          or an ongoing project, it MUST be kept regardless of age. If you find NO evidence
+          at all and the file is old, it's an archive candidate.
+        successCriteria: Every candidate file has a provenance classification and action recommendation
+        completionContract: Exit when all files have been investigated
   - id: node-cleanup-review
     type: workflow
     position:
       x: 400
-      y: 350
+      y: 530
     data:
       subtype: orchestrator-prompt
       category: agent
       label: Review & Approve Plan
       config:
         prompt: >
-          Review the file scan results from the previous step. Create a cleanup execution plan.
+          Review the provenance investigation results. Create the final cleanup execution plan.
           Be conservative — when in doubt, keep the file.
 
           **Hard rules (never violate):**
-          - NEVER touch anything in ~/sulla/identity/
-          - NEVER archive today's daily-logs or anything less than 7 days old
-          - NEVER archive files referenced by active goals or active projects
+          - NEVER touch anything in ~/sulla/identity/, ~/sulla/agents/, ~/sulla/skills/,
+            ~/sulla/workflows/, or ~/sulla/integrations/
+          - NEVER archive anything less than 7 days old
+          - NEVER archive files that the provenance investigation tied to active goals
+          - Files marked `human-requested` need stronger evidence of staleness before archiving —
+            the human asked for these specifically, so respect that
           - ALL removals from live directories are soft-deletes (move to ~/sulla/archive/)
-          - Only permanently delete files that have been sitting in ~/sulla/archive/ for 30+ days
-          - Preserve relative directory structure when archiving (e.g., daily-logs/2026-03-01/human/ → archive/daily-logs/2026-03-01/human/)
+          - Only permanently purge files that have been in ~/sulla/archive/ for 30+ days
+          - Preserve relative directory structure when archiving
 
           Produce two lists:
-          1. **Archive list** — files to soft-delete (move from live to ~/sulla/archive/)
+          1. **Archive list** — files to soft-delete (move from live → ~/sulla/archive/)
+             Include the provenance evidence for each file so the changelog is informative.
           2. **Purge list** — files already in ~/sulla/archive/ for 30+ days, safe to permanently remove
 
           If nothing needs cleanup, say so and skip execution.
@@ -92,7 +142,7 @@ nodes:
     type: workflow
     position:
       x: 400
-      y: 500
+      y: 700
     data:
       subtype: agent
       category: agent
@@ -102,9 +152,9 @@ nodes:
         agentName: Cleanup Executor
         additionalPrompt: ""
         orchestratorInstructions: >
-          Execute the cleanup plan from the previous step. The agent should:
+          Execute the approved cleanup plan from the previous step. The agent should:
 
-          1. Create the archive directory preserving structure: mkdir -p ~/sulla/archive/{relative-path}/
+          1. Create archive directories preserving structure: mkdir -p ~/sulla/archive/{relative-path}/
           2. Move archive-list files into ~/sulla/archive/, preserving their relative path from ~/sulla/
           3. Permanently delete purge-list files (only files already in archive for 30+ days)
           4. Track every single action for the changelog
@@ -114,15 +164,15 @@ nodes:
           **Safety:** If in doubt about ANY file, archive it instead of purging. We can always
           recover from archive. We cannot recover from a permanent delete.
 
-          Return a structured summary of all actions taken: files archived (with source → dest paths),
-          files purged, files skipped, and any errors encountered.
+          Return a structured summary of all actions taken: files archived (with source → dest paths
+          and provenance), files purged, files skipped, and any errors encountered.
         successCriteria: All cleanup actions executed successfully
         completionContract: Exit when cleanup is complete and action summary is ready
   - id: node-cleanup-changelog
     type: workflow
     position:
       x: 400
-      y: 650
+      y: 870
     data:
       subtype: orchestrator-prompt
       category: agent
@@ -132,25 +182,26 @@ nodes:
           Append a new entry to the persistent cleanup changelog at ~/sulla/archive/CHANGELOG.md.
           This file is the permanent history of all cleanup operations. Create it if it doesn't exist.
 
-          **Format for each entry (append, never overwrite):**
+          **Format for each entry (append to the TOP of the file, newest first):**
 
           ```
           ## YYYY-MM-DD HH:MM — Daily Cleanup
 
           **Archived** (soft-deleted from live → archive):
-          - `{source-path}` → `{archive-path}` ({size}, {age} days old, reason: {why})
-          - ...
+          - `{source-path}` → `{archive-path}`
+            Size: {size} | Age: {N} days | Provenance: {who created it and why}
+            Evidence: {conversation/log reference where creation was found}
+            Reason: {why it's being archived now}
 
           **Purged** (permanently removed from archive):
-          - `{path}` ({size}, archived {N} days ago, reason: aged out)
-          - ...
+          - `{path}` — archived {N} days ago, reason: aged out of 30-day retention
 
-          **Kept** (reviewed but retained):
-          - {count} files kept in live directories
-          - {count} files kept in archive (not yet 30 days)
+          **Kept** (investigated but retained):
+          - {count} files kept — still relevant to active goals or recently referenced
+          - {count} files in archive — not yet past 30-day retention
 
-          **Stats:** Scanned {N} files, archived {N}, purged {N}, kept {N}
-          **Disk freed:** {size}
+          **Stats:** Scanned {N} files | Investigated {N} | Archived {N} | Purged {N} | Kept {N}
+          **Disk recovered:** {size}
 
           ---
           ```
@@ -158,12 +209,13 @@ nodes:
           Also write a brief summary to today's daily log at
           ~/sulla/daily-logs/$(date +%Y-%m-%d)/cleanup-log.md.
 
-          If nothing was cleaned up, still log an entry saying "No cleanup needed" with the scan count.
+          If nothing was cleaned up, still log an entry saying "No cleanup needed — {N} files
+          scanned, all still relevant" with the date.
   - id: node-cleanup-done
     type: workflow
     position:
       x: 400
-      y: 800
+      y: 1020
     data:
       subtype: response
       category: io
@@ -171,12 +223,16 @@ nodes:
       config:
         responseTemplate: Daily cleanup complete.
 edges:
-  - id: e-cleanup-trigger-scan
+  - id: e-cleanup-trigger-inventory
     source: node-cleanup-trigger
-    target: node-cleanup-scan
+    target: node-cleanup-inventory
     animated: true
-  - id: e-cleanup-scan-review
-    source: node-cleanup-scan
+  - id: e-cleanup-inventory-provenance
+    source: node-cleanup-inventory
+    target: node-cleanup-provenance
+    animated: true
+  - id: e-cleanup-provenance-review
+    source: node-cleanup-provenance
     target: node-cleanup-review
     animated: true
   - id: e-cleanup-review-execute
