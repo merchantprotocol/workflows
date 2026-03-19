@@ -17,17 +17,6 @@ nodes:
       config:
         triggerType: chat-app
         triggerDescription: Receives domain and log path from parent workflow orchestrator
-  - id: node-2000000000010
-    type: workflow
-    position:
-      x: 496.12086659064994
-      y: 206.24743443557583
-    data:
-      subtype: orchestrator-prompt
-      category: agent
-      label: Load Skill
-      config:
-        prompt: The trigger message below tells you the domain to observe and the log path. Determine the domain (human, business, world, or agent) and load the corresponding observe skill using the load_skill tool — for example if the domain is "human", load the skill "observe-human". If the domain is "agent", load the skill "observe-agent". Load the skill only — do NOT execute it, do NOT start observing yet. Just confirm the skill is loaded and wait for further instructions.
   - id: node-2000000000002
     type: workflow
     position:
@@ -41,7 +30,21 @@ nodes:
         agentId: observer
         agentName: Observer
         additionalPrompt: ""
-        orchestratorInstructions: You have already loaded the domain-specific observe skill. Use the skill's topics and instructions to create a <PROMPT> tag for each observation topic. Each observer agent should write its own log file at the log path from the trigger message.
+        orchestratorInstructions: >
+          The trigger message tells you the domain to observe and the log path.
+
+          **Step 1:** Determine the domain (human, business, world, or agent) from the trigger message.
+
+          **Step 2:** Load the corresponding observe skill using the load_skill tool — for example
+          if the domain is "human", load the skill "observe-human". If the domain is "agent", load
+          the skill "observe-agent".
+
+          **Step 3:** Read the skill's topics and instructions. Create a <PROMPT> tag for each
+          observation topic defined in the skill. Each observer sub-agent should write its own
+          log file at the log path specified in the trigger message.
+
+          Do NOT stop after loading the skill. You MUST proceed to dispatch all observation topics
+          as sub-agents and wait for them to complete.
         successCriteria: All observation topics from the skill have been dispatched and completed
         completionContract: Exit when all observer agents have written their log files
   - id: node-2000000000003
@@ -56,12 +59,8 @@ nodes:
       config:
         responseTemplate: Observation complete for the requested domain.
 edges:
-  - id: e-trigger-to-load-skill
+  - id: e-trigger-to-observe
     source: node-2000000000001
-    target: node-2000000000010
-    animated: true
-  - id: e-load-skill-to-observe
-    source: node-2000000000010
     target: node-2000000000002
     animated: true
   - id: e-observe-to-done
