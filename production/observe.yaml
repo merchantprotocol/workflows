@@ -1,9 +1,9 @@
 id: workflow-observe
 name: Observe
-description: Universal observation workflow — loads domain-specific observe skill and delegates to parallel observer agents
-version: 2
+description: Universal observation workflow — reads domain-specific observe skill topics and dispatches parallel observer agents
+version: 3
 createdAt: 2026-03-18T04:00:00.000Z
-updatedAt: 2026-03-19T20:00:00.000Z
+updatedAt: 2026-03-19T20:15:00.000Z
 nodes:
   - id: node-2000000000001
     type: workflow
@@ -29,10 +29,11 @@ nodes:
       config:
         prompt: |
           The trigger message tells you the domain to observe and the log path.
-          Determine the domain (human, business, world, or agent) from the trigger message.
-          Load the corresponding observe skill — for example if the domain is "human",
-          load the skill "observe-human". If the domain is "agent", load the skill "observe-agent".
-          Load the skill and wait for further instructions.
+          Determine the domain (human, business, world, or agent) from the trigger.
+          Read the observe skill file at ~/sulla/skills/observe-{domain}/SKILL.md
+          (e.g. for "human" read ~/sulla/skills/observe-human/SKILL.md).
+          Output the full contents of the skill file — this will be passed to the
+          observer agent in the next step.
   - id: node-2000000000002
     type: workflow
     position:
@@ -47,16 +48,14 @@ nodes:
         agentName: Observer
         additionalPrompt: ""
         orchestratorInstructions: |
-          The observe skill has been loaded. You now have access to the skill's topics
-          and instructions in your context.
+          The upstream context contains the observation skill with all the topics
+          to observe. The trigger message has the domain and the log path.
 
-          Use the skill's observation topics to guide your work. For each topic defined
-          in the skill, create a <PROMPT> tag to dispatch a sub-agent that will observe
-          that specific topic and write its own log file at the log path from the trigger
-          message.
+          For each observation topic defined in the skill, dispatch a sub-agent
+          using a <PROMPT> tag. Each sub-agent should focus on one topic and write
+          its observation to {log_path}/{topic-slug}.md.
 
-          Do NOT do all the observation work yourself. Dispatch sub-agents for each topic
-          so they run in parallel.
+          Dispatch ALL topics as parallel sub-agents. Wait for all to complete.
         successCriteria: All observation topics from the skill have been dispatched and completed
         completionContract: Exit when all observer agents have written their log files
   - id: node-2000000000003
