@@ -3,7 +3,7 @@ name: Goal Setter
 description: Multi-horizon goal-setting workflow — compresses inputs, runs goal-cycle at 2yr/13wk/daily horizons, derives weekly goals, writes goals journal
 version: 1
 createdAt: 2026-03-18T06:00:00.000Z
-updatedAt: 2026-03-18T15:17:03.038Z
+updatedAt: 2026-03-19T23:40:00.000Z
 nodes:
   - id: node-4000000000001
     type: workflow
@@ -23,13 +23,17 @@ nodes:
       x: 496.42591852560633
       y: 135.91562290425833
     data:
-      subtype: tool-call
+      subtype: orchestrator-prompt
       category: agent
       label: Load Goals Skill
       config:
-        toolName: load_skill
-        defaults:
-          skill_name: goals-journal
+        prompt: |-
+          The trigger message tells you the domain and file paths for goal setting.
+          Determine the domain (human, business, world, or agent) from the trigger.
+
+          Step 1: Call your file_search tool with query "goals-journal" to find the goals-journal skill file.
+          Step 2: Use exec to read the full contents of the SKILL.md file found in step 1.
+          Step 3: Return the complete skill content as your output. Do NOT summarize — return the full text.
   - id: node-4000000000010
     type: workflow
     position:
@@ -225,6 +229,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: -324.45426755752436
-  y: -751.5124339840702
-  zoom: 1.0763936240992988
+  x: -709.3429626840475
+  y: -481.12812725292224
+  zoom: 1.824703875770942

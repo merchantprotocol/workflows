@@ -1,9 +1,9 @@
 id: workflow-observe
 name: Observe
-description: Universal observation workflow — loads domain-specific observe skill and delegates to parallel observer agents
-version: 1
+description: Universal observation workflow — reads domain-specific observe skill topics and dispatches parallel observer agents
+version: 4
 createdAt: 2026-03-18T04:00:00.000Z
-updatedAt: 2026-03-18T15:31:09.988Z
+updatedAt: 2026-03-19T21:07:38.429Z
 nodes:
   - id: node-2000000000001
     type: workflow
@@ -27,7 +27,20 @@ nodes:
       category: agent
       label: Load Skill
       config:
-        prompt: The trigger message below tells you the domain to observe and the log path. Determine the domain (human, business, world, or agent) and load the corresponding observe skill using the load_skill tool — for example if the domain is "human", load the skill "observe-human". If the domain is "agent", load the skill "observe-agent". Load the skill only — do NOT execute it, do NOT start observing yet. Just confirm the skill is loaded and wait for further instructions.
+        prompt: |
+          The trigger message tells you the domain to observe and the log path.
+          Determine the domain (human, business, world, or agent) from the trigger.
+
+          Step 1: Call your file_search tool with query "observe-{domain} SKILL.md"
+          to locate the skill file. For the human domain, search for
+          "observe-human SKILL.md".
+
+          Step 2: Use the file path returned by file_search to read the skill.
+          Call your exec tool with: cat {path-from-file-search}
+          Use the FULL absolute path returned by file_search, not a relative path.
+
+          Output the full contents of the skill file — this contains the
+          instructions you will use to direct the observer agents.
   - id: node-2000000000002
     type: workflow
     position:
@@ -41,7 +54,15 @@ nodes:
         agentId: observer
         agentName: Observer
         additionalPrompt: ""
-        orchestratorInstructions: You have already loaded the domain-specific observe skill. Use the skill's topics and instructions to create a <PROMPT> tag for each observation topic. Each observer agent should write its own log file at the log path from the trigger message.
+        orchestratorInstructions: |
+          The upstream context contains the observation skill with all the topics
+          to observe. The trigger message has the domain and the log path.
+
+          For each observation topic defined in the skill, dispatch a sub-agent
+          using a <PROMPT> tag. Each sub-agent should focus on one topic and write
+          its observation to {log_path}/{topic-slug}.md.
+
+          Dispatch ALL topics as parallel sub-agents. Wait for all to complete.
         successCriteria: All observation topics from the skill have been dispatched and completed
         completionContract: Exit when all observer agents have written their log files
   - id: node-2000000000003
@@ -70,6 +91,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: -828.5276477430737
-  y: -40.209150445013165
-  zoom: 2
+  x: -78.90790279492325
+  y: 23.700974571603012
+  zoom: 0.9753655299287737

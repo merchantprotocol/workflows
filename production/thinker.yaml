@@ -3,7 +3,7 @@ name: Thinker
 description: Analyze human identity through 11 specialized lenses, compile into strategic plan
 version: 2
 createdAt: 2026-03-17T21:15:00.000Z
-updatedAt: 2026-03-18T03:16:46.139Z
+updatedAt: 2026-03-19T20:53:12.298Z
 nodes:
   - id: node-1000000000001
     type: workflow
@@ -40,7 +40,7 @@ nodes:
         agentId: thinker-worker
         agentName: Life Stage Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract signals about current life/career stage, time/energy constraints, resources, risk tolerance, current season (building/consolidating/exploring/recovering). Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/life-stage.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract signals about current life/career stage, time/energy constraints, resources, risk tolerance, current season (building/consolidating/exploring/recovering). Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/life-stage.md — replace {domain} with the domain the orchestrator told you to analyze (human, business, world, or agent).
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000005
@@ -56,7 +56,7 @@ nodes:
         agentId: thinker-worker
         agentName: Goals Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract stated or strongly implied goals, desires, short-term priorities, long-term vision, wished-for capabilities, what they want agents/tools to handle. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/goals.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract stated or strongly implied goals, desires, short-term priorities, long-term vision, wished-for capabilities, what they want agents/tools to handle. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/goals.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000006
@@ -72,7 +72,7 @@ nodes:
         agentId: thinker-worker
         agentName: Pains Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract pain points, blockers, recurring frustrations, skill gaps, tool friction, emotional burdens, failed attempts. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/pains.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract pain points, blockers, recurring frustrations, skill gaps, tool friction, emotional burdens, failed attempts. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/pains.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000007
@@ -88,7 +88,7 @@ nodes:
         agentId: thinker-worker
         agentName: Patterns Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract daily/weekly rhythms, task approach, learning style, collaboration patterns, priorities vs neglect, procrastination triggers, tool usage habits. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/patterns.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract daily/weekly rhythms, task approach, learning style, collaboration patterns, priorities vs neglect, procrastination triggers, tool usage habits. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/patterns.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000008
@@ -104,7 +104,7 @@ nodes:
         agentId: thinker-worker
         agentName: Transformations Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract skills being built, mindset shifts, habits forming/breaking, role changes, recent differences vs past. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/transformations.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract skills being built, mindset shifts, habits forming/breaking, role changes, recent differences vs past. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/transformations.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000009
@@ -120,7 +120,7 @@ nodes:
         agentId: thinker-worker
         agentName: Emotional Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract observed mood, energy, stress, confidence, burnout/disengagement signals, sources of joy/energy, emotional subtext. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/emotional.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract observed mood, energy, stress, confidence, burnout/disengagement signals, sources of joy/energy, emotional subtext. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/emotional.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000010
@@ -136,7 +136,7 @@ nodes:
         agentId: thinker-worker
         agentName: Financial Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract financial situation, revenue/spending patterns, pressures, how money influences decisions, financial goals/constraints. Only include with clear evidence — mark speculative inferences. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/financial.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract financial situation, revenue/spending patterns, pressures, how money influences decisions, financial goals/constraints. Only include with clear evidence — mark speculative inferences. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/financial.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000011
@@ -152,7 +152,7 @@ nodes:
         agentId: thinker-worker
         agentName: Entities Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Extract mentions of influencing people/businesses/entities (collaborators, clients, family, competitors). Note nature, direction of influence, dependencies, tensions/alignment. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/entities.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Extract mentions of influencing people/businesses/entities (collaborators, clients, family, competitors). Note nature, direction of influence, dependencies, tensions/alignment. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/entities.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1000000000012
@@ -168,7 +168,7 @@ nodes:
         agentId: thinker-worker
         agentName: Irrelevance Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Identify routine, transient, or low-value observations that should NOT be included in the identity file. List them with brief reasoning why they are irrelevant for long-term planning. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/irrelevance.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Identify routine, transient, or low-value observations that should NOT be included in the identity file. List them with brief reasoning why they are irrelevant for long-term planning. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/irrelevance.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis listing filtered items
         completionContract: Exit when analysis file is complete
   - id: node-1000000000013
@@ -184,7 +184,7 @@ nodes:
         agentId: thinker-worker
         agentName: AI Efforts Lens
         additionalPrompt: ""
-        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Examine how AI actions, suggestions, frequency, and style are affecting the human's observed energy, mood, stress, confidence, and engagement. Identify where AI is genuinely helping vs adding friction. Flag emotional signals showing AI misalignment or over/under-reaching. Note patterns in when AI assistance lands well vs poorly. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/ai-vs-emotional-state.md
+        orchestratorInstructions: Analyze the observation logs for the domain specified by the orchestrator. Examine how AI actions, suggestions, frequency, and style are affecting the observed energy, mood, stress, confidence, and engagement. Identify where AI is genuinely helping vs adding friction. Flag emotional signals showing AI misalignment or over/under-reaching. Note patterns in when AI assistance lands well vs poorly. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/ai-vs-emotional-state.md — replace {domain} with the domain the orchestrator told you to analyze.
         successCriteria: Markdown analysis with evidence-based observations
         completionContract: Exit when analysis file is complete
   - id: node-1773786723809
@@ -327,7 +327,7 @@ nodes:
       category: agent
       label: Prompt
       config:
-        prompt: All lens analyses (default and custom) have been processed. Compile a final strategic synthesis. Read ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/ and the updated identity file. Write a strategic plan to ~/sulla/identity/thinking-strategy.md that captures cross-cutting themes, contradictions between lenses, and actionable priorities.
+        prompt: All lens analyses (default and custom) have been processed. Compile a final strategic synthesis. Read the thinking outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/ (use the domain you were told to analyze) and the updated identity file. Write a strategic plan to ~/sulla/daily-logs/{{YYYY-MM-DD}}/{domain}/thinking/strategy.md that captures cross-cutting themes, contradictions between lenses, and actionable priorities.
 edges:
   - id: e3
     source: node-1000000000002
@@ -492,6 +492,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: -0.6614572658051543
-  y: -428.13348555718494
-  zoom: 1.0684992812226841
+  x: -309.66942987094626
+  y: 455.2832114702843
+  zoom: 1.1522173138311491

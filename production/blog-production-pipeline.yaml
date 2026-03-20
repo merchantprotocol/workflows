@@ -4,7 +4,7 @@ description: End-to-end automated blog production with 21 specialized agent stag
 version: 1
 enabled: true
 createdAt: 2026-03-15T00:00:00.000Z
-updatedAt: 2026-03-17T00:39:04.809Z
+updatedAt: 2026-03-19T02:58:57.673Z
 nodes:
   - id: node-1741000000001
     type: workflow
@@ -733,18 +733,6 @@ nodes:
       config:
         triggerType: sulla-desktop
         triggerDescription: ""
-  - id: node-1773648960421
-    type: workflow
-    position:
-      x: 308.8732423303938
-      y: 120.90189520085579
-    data:
-      subtype: heartbeat
-      category: trigger
-      label: Heartbeat Trigger
-      config:
-        triggerType: heartbeat
-        triggerDescription: ""
   - id: node-1773648967742
     type: workflow
     position:
@@ -973,13 +961,6 @@ edges:
     targetHandle: null
     label: ""
     animated: true
-  - id: vueflow__edge-node-1773648960421-node-1741000000002
-    source: node-1773648960421
-    target: node-1741000000002
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
   - id: vueflow__edge-node-1773648967742-node-1741000000002
     source: node-1773648967742
     target: node-1741000000002
@@ -995,6 +976,7 @@ edges:
     label: ""
     animated: true
 viewport:
-  x: 319.64406616808367
-  y: -493.8073853948555
-  zoom: 0.5
+  x: -38.49540018399267
+  y: 143
+  zoom: 0.8068077276908924
+_status: production

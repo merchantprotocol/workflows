@@ -1,9 +1,9 @@
 id: workflow-1773725042351
 name: Daily Planning
 description: Daily autonomous planning pipeline — observe, think, goal-set across human/business in parallel, then focused world-view forecasting, then self goal-setting
-version: 1
+version: 2
 createdAt: 2026-03-17T05:24:02.351Z
-updatedAt: 2026-03-18T15:31:34.311Z
+updatedAt: 2026-03-20T00:18:33.127Z
 nodes:
   - id: node-1773759817932
     type: workflow
@@ -59,7 +59,8 @@ nodes:
         workflowId: workflow-observe
         awaitResponse: true
         agentId: Observer
-        orchestratorPrompt: Run the observe workflow for the human domain. FIRST read the real-time observation log at ~/sulla/daily-logs/{{YYYY-MM-DD}}/observations.md — these are observations collected throughout the day during live conversations. Use them as a starting point and supplement with your own deep observation. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/human/
+        orchestratorPrompt: |
+          Run the observe workflow for the human domain. FIRST read any real-time observations at ~/sulla/daily-logs/{{YYYY-MM-DD}}/human/observations/ — these are observations collected throughout the day during live conversations. Use them as a starting point and supplement with your own deep observation. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/human/observations/
   - id: node-1773726731262
     type: workflow
     position:
@@ -73,7 +74,8 @@ nodes:
         workflowId: workflow-thinker
         awaitResponse: true
         agentId: Thinker
-        orchestratorPrompt: This thinking process needs to be done on the human observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of the human log files.
+        orchestratorPrompt: |
+          This thinking process is for the HUMAN domain. Analyze observation logs at ~/sulla/daily-logs/*/human/observations/ and write all thinking outputs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/human/thinking/. The identity file is at ~/sulla/identity/human/identity.md.
   - id: node-1773803963347
     type: workflow
     position:
@@ -87,7 +89,8 @@ nodes:
         workflowId: workflow-goal-setter
         awaitResponse: true
         agentId: goal-setter
-        orchestratorPrompt: Run the goal-setter workflow for the human domain. Identity file at ~/sulla/identity/human.md. Think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/human/. Goals journal at ~/sulla/identity/human-journal.md.
+        orchestratorPrompt: |
+          Run the goal-setter workflow for the human domain. Identity file at ~/sulla/identity/human/identity.md. Think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/human/thinking/. Goals journal at ~/sulla/identity/human/goals.md.
   - id: node-1773727750407
     type: workflow
     position:
@@ -101,7 +104,8 @@ nodes:
         workflowId: workflow-observe
         awaitResponse: true
         agentId: Observer
-        orchestratorPrompt: Run the observe workflow for the business domain. FIRST read the real-time observation log at ~/sulla/daily-logs/{{YYYY-MM-DD}}/observations.md — these are observations collected throughout the day during live conversations. Use them as a starting point and supplement with your own deep observation. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/business/
+        orchestratorPrompt: |
+          Run the observe workflow for the business domain. FIRST read any real-time observations at ~/sulla/daily-logs/{{YYYY-MM-DD}}/business/observations/ — these are observations collected throughout the day during live conversations. Use them as a starting point and supplement with your own deep observation. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/business/observations/
   - id: node-1773727873275
     type: workflow
     position:
@@ -115,7 +119,8 @@ nodes:
         workflowId: workflow-thinker
         awaitResponse: true
         agentId: Thinker
-        orchestratorPrompt: This thinking process needs to be done on the Business observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of the Business log files.
+        orchestratorPrompt: |
+          This thinking process is for the BUSINESS domain. Analyze observation logs at ~/sulla/daily-logs/*/business/observations/ and write all thinking outputs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/business/thinking/. The identity file is at ~/sulla/identity/business/identity.md.
   - id: node-1773803993449
     type: workflow
     position:
@@ -129,7 +134,8 @@ nodes:
         workflowId: workflow-goal-setter
         awaitResponse: true
         agentId: goal-setter
-        orchestratorPrompt: Run the goal-setter workflow for the business domain. Identity file at ~/sulla/identity/business.md. Think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/business/. Goals journal at ~/sulla/identity/business-journal.md.
+        orchestratorPrompt: |
+          Run the goal-setter workflow for the business domain. Identity file at ~/sulla/identity/business/identity.md. Think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/business/thinking/. Goals journal at ~/sulla/identity/business/goals.md.
   - id: node-merge-human-business
     type: workflow
     position:
@@ -154,7 +160,8 @@ nodes:
         agentId: forecaster
         agentName: Topic Lens Extractor
         additionalPrompt: ""
-        orchestratorInstructions: Read the human goal journal at ~/sulla/identity/human-journal.md and the business goal journal at ~/sulla/identity/business-journal.md. Extract the SUBJECTS and DIRECTIONS — not the goals themselves. For example, if the human goal is 'buy a house in Portland', extract 'housing market — Portland metro'. If the business goal is 'grow SaaS revenue to $50k MRR', extract 'SaaS developer tools market'. Produce a focused topic lens of 3-7 subjects with a one-line explanation of why each matters. This topic lens will guide ALL downstream world observation and forecasting.
+        orchestratorInstructions: |
+          Read the human goals at ~/sulla/identity/human/goals.md and the business goals at ~/sulla/identity/business/goals.md. Extract the SUBJECTS and DIRECTIONS — not the goals themselves. For example, if the human goal is 'buy a house in Portland', extract 'housing market — Portland metro'. If the business goal is 'grow SaaS revenue to $50k MRR', extract 'SaaS developer tools market'. Produce a focused topic lens of 3-7 subjects with a one-line explanation of why each matters. This topic lens will guide ALL downstream world observation and forecasting.
         successCriteria: A topic lens with 3-7 focused subjects derived from human and business goals
         completionContract: Exit when topic lens is complete
   - id: node-observe-world
@@ -170,7 +177,8 @@ nodes:
         workflowId: workflow-observe
         awaitResponse: true
         agentId: Observer
-        orchestratorPrompt: Run the observe workflow for the world domain. FIRST read the real-time observation log at ~/sulla/daily-logs/{{YYYY-MM-DD}}/observations.md for any world-relevant observations collected during the day. The topic lens has been extracted from human and business goals — use the topic lens subjects from the previous step to focus your world observations. Only observe conditions relevant to those subjects. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/world/
+        orchestratorPrompt: |
+          Run the observe workflow for the world domain. FIRST read any real-time observations at ~/sulla/daily-logs/{{YYYY-MM-DD}}/world/observations/ for any world-relevant observations collected during the day. The topic lens has been extracted from human and business goals — use the topic lens subjects from the previous step to focus your world observations. Only observe conditions relevant to those subjects. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/world/observations/
   - id: node-think-world
     type: workflow
     position:
@@ -184,7 +192,8 @@ nodes:
         workflowId: workflow-thinker
         awaitResponse: true
         agentId: Thinker
-        orchestratorPrompt: This thinking process needs to be done on the World observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of the World log files.
+        orchestratorPrompt: |
+          This thinking process is for the WORLD domain. Analyze observation logs at ~/sulla/daily-logs/*/world/observations/ and write all thinking outputs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/world/thinking/. The identity file is at ~/sulla/identity/world/identity.md.
   - id: node-forecast-world
     type: workflow
     position:
@@ -198,7 +207,8 @@ nodes:
         workflowId: workflow-forecaster
         awaitResponse: true
         agentId: forecaster
-        orchestratorPrompt: Run the forecaster workflow for the world domain. The topic lens was already extracted upstream — pass it through. World identity file at ~/sulla/identity/world.md. World think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/world/. Forecasting journal at ~/sulla/identity/world-journal.md.
+        orchestratorPrompt: |
+          Run the forecaster workflow for the world domain. The topic lens was already extracted upstream — pass it through. World identity file at ~/sulla/identity/world/identity.md. World think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/world/thinking/. Forecasting journal at ~/sulla/identity/world/goals.md.
   - id: node-1773804054485
     type: workflow
     position:
@@ -212,7 +222,8 @@ nodes:
         workflowId: workflow-observe
         awaitResponse: true
         agentId: Observer
-        orchestratorPrompt: "Run the observe workflow for the agent domain. FIRST read the real-time observation log at ~/sulla/daily-logs/{{YYYY-MM-DD}}/observations.md — these are observations collected throughout the day during live conversations, including self-observations about agent performance. The human goal journal is at ~/sulla/identity/human-journal.md and business goal journal at ~/sulla/identity/business-journal.md — use these to understand what goals the agent should have been advancing. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/"
+        orchestratorPrompt: |
+          Run the observe workflow for the agent domain. FIRST read any real-time observations at ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/observations/ — these are observations collected throughout the day during live conversations, including self-observations about agent performance. The human goals are at ~/sulla/identity/human/goals.md and business goals at ~/sulla/identity/business/goals.md — use these to understand what goals the agent should have been advancing. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/observations/
   - id: node-1773804121904
     type: workflow
     position:
@@ -226,7 +237,8 @@ nodes:
         workflowId: workflow-thinker
         awaitResponse: true
         agentId: Thinker
-        orchestratorPrompt: "This thinking process needs to be done on the agent self-observation logs. Load the agent-thinking skill for analysis lenses. Analyze agent performance through: effectiveness assessment, goal advancement, influence effectiveness, relationship health, knowledge/capability gaps, and strategic self-direction. Use the GLOB path for all agent log files at ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/. The identity file is at ~/sulla/identity/agent.md."
+        orchestratorPrompt: |
+          This thinking process is for the AGENT domain. Analyze observation logs at ~/sulla/daily-logs/*/agent/observations/ and write all thinking outputs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/thinking/. The identity file is at ~/sulla/identity/agent/identity.md. Load the agent-thinking skill for analysis lenses. Analyze agent performance through: effectiveness assessment, goal advancement, influence effectiveness, relationship health, knowledge/capability gaps, and strategic self-direction.
   - id: node-1773727663008
     type: workflow
     position:
@@ -240,7 +252,8 @@ nodes:
         workflowId: workflow-goal-setter
         awaitResponse: true
         agentId: goal-setter
-        orchestratorPrompt: "Run the goal-setter workflow for the agent domain. Identity file at ~/sulla/identity/agent.md. Think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/agent/. Goals journal at ~/sulla/identity/agent-journal.md. The agent's goals should focus on: how to better serve the human, how to advance the human's and business's goals more effectively, how to build trust, and how to improve as an assistant."
+        orchestratorPrompt: |
+          Run the goal-setter workflow for the agent domain. Identity file at ~/sulla/identity/agent/identity.md. Think outputs at ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/thinking/. Goals journal at ~/sulla/identity/agent/goals.md. The agent's goals should focus on: how to better serve the human, how to advance the human's and business's goals more effectively, how to build trust, and how to improve as an assistant.
   - id: node-1773730813990
     type: workflow
     position:
@@ -254,7 +267,8 @@ nodes:
         agentId: prompt-engineer
         agentName: Prompt Engineer
         additionalPrompt: ""
-        orchestratorInstructions: "Load the agent-prompts skill and the goals-influence-strategies skill. Read the agent goal journal at ~/sulla/identity/agent-journal.md (daily + weekly goals), the agent identity file at ~/sulla/identity/agent.md (relationship health, buy-in level), the human goal journal at ~/sulla/identity/human-journal.md, and the business goal journal at ~/sulla/identity/business-journal.md. Following the agent-prompts skill process: analyze the goal stack, determine appropriate influence level, match goals to agents, craft injection files, validate against red lines, and write goals.md for each relevant agent. Log all injections written and deferred to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/prompts-log.md."
+        orchestratorInstructions: |
+          Load the agent-prompts skill and the goals-influence-strategies skill. Read the agent goals at ~/sulla/identity/agent/goals.md (daily + weekly goals), the agent identity file at ~/sulla/identity/agent/identity.md (relationship health, buy-in level), the human goals at ~/sulla/identity/human/goals.md, and the business goals at ~/sulla/identity/business/goals.md. Following the agent-prompts skill process: analyze the goal stack, determine appropriate influence level, match goals to agents, craft injection files, validate against red lines, and write goals.md for each relevant agent. Log all injections written and deferred to ~/sulla/daily-logs/{{YYYY-MM-DD}}/agent/prompts-log.md.
         successCriteria: Injection files written for all relevant agents and prompt log saved
         completionContract: Exit when all injection files and the log are written
   - id: node-cleanup
@@ -270,7 +284,8 @@ nodes:
         workflowId: workflow-cleanup
         awaitResponse: true
         agentId: Observer
-        orchestratorPrompt: "Run the daily cleanup workflow. Scan the ~/sulla/ directory for stale files, outdated logs, and temporary artifacts. Archive old daily-logs and remove clearly temporary files. Be conservative — when in doubt, keep."
+        orchestratorPrompt: |
+          Run the daily cleanup workflow. Scan the ~/sulla/ directory for stale files, outdated logs, and temporary artifacts. Archive old daily-logs and remove clearly temporary files. Be conservative — when in doubt, keep.
   - id: node-project-planning
     type: workflow
     position:
@@ -284,7 +299,8 @@ nodes:
         workflowId: workflow-project-planning
         awaitResponse: true
         agentId: project-resource-document
-        orchestratorPrompt: "Run the daily project planning workflow. All goal journals have been updated earlier in the pipeline — read them for the latest goals. Human goals at ~/sulla/identity/human-journal.md, business goals at ~/sulla/identity/business-journal.md, agent goals at ~/sulla/identity/agent-journal.md. Identity files at ~/sulla/identity/. Active projects at ~/sulla/projects/ACTIVE_PROJECTS.md. Propose the top 3 project ideas to the human for approval before creating anything."
+        orchestratorPrompt: |
+          Run the daily project planning workflow. All goals have been updated earlier in the pipeline — read them for the latest goals. Human goals at ~/sulla/identity/human/goals.md, business goals at ~/sulla/identity/business/goals.md, agent goals at ~/sulla/identity/agent/goals.md. Identity files at ~/sulla/identity/. Active projects at ~/sulla/projects/ACTIVE_PROJECTS.md. Propose the top 3 project ideas to the human for approval before creating anything.
 edges:
   - id: e-schedule-split
     source: node-1773759817932
@@ -321,53 +337,53 @@ edges:
   - id: e-human-goal-merge
     source: node-1773803963347
     target: node-merge-human-business
-    animated: true
+    animated: false
   - id: e-business-goal-merge
     source: node-1773803993449
     target: node-merge-human-business
-    animated: true
+    animated: false
   - id: e-merge-topic-lens
     source: node-merge-human-business
     target: node-extract-topic-lens
-    animated: true
+    animated: false
   - id: e-topic-lens-observe-world
     source: node-extract-topic-lens
     target: node-observe-world
-    animated: true
+    animated: false
   - id: e-observe-think-world
     source: node-observe-world
     target: node-think-world
-    animated: true
+    animated: false
   - id: e-think-forecast-world
     source: node-think-world
     target: node-forecast-world
-    animated: true
+    animated: false
   - id: e-forecast-observe-agent
     source: node-forecast-world
     target: node-1773804054485
-    animated: true
+    animated: false
   - id: e-observe-think-agent
     source: node-1773804054485
     target: node-1773804121904
-    animated: true
+    animated: false
   - id: e-think-goal-agent
     source: node-1773804121904
     target: node-1773727663008
-    animated: true
+    animated: false
   - id: e-goal-prompts-agent
     source: node-1773727663008
     target: node-1773730813990
-    animated: true
+    animated: false
   - id: e-prompts-cleanup
     source: node-1773730813990
     target: node-cleanup
-    animated: true
+    animated: false
   - id: e-cleanup-project-planning
     source: node-cleanup
     target: node-project-planning
-    animated: true
+    animated: false
 _status: production
 viewport:
-  x: 224.89643470513312
-  y: 183.02945879407778
-  zoom: 0.5345693306295832
+  x: -51.66327442621298
+  y: -101.72108274647263
+  zoom: 0.9927186401994753
