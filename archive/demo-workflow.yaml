@@ -164,9 +164,9 @@ nodes:
       x: 424.11010653764856
       y: 808.3644322989661
     data:
-      subtype: tool-call
+      subtype: integration-call
       category: agent
-      label: Tool Call
+      label: Integration Call
       config:
         integrationSlug: ""
         endpointName: ""

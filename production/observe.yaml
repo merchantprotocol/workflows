@@ -1,0 +1,83 @@
+id: workflow-observe
+name: Observe
+description: Universal observation workflow — loads domain-specific observe skill and delegates to parallel observer agents
+version: 1
+createdAt: 2026-03-18T04:00:00.000Z
+updatedAt: 2026-03-18T03:38:54.352Z
+nodes:
+  - id: node-2000000000001
+    type: workflow
+    position:
+      x: 500
+      y: 50
+    data:
+      subtype: chat-app
+      category: trigger
+      label: Trigger
+      config:
+        triggerType: chat-app
+        triggerDescription: Receives domain and log path from parent workflow orchestrator
+  - id: node-2000000000010
+    type: workflow
+    position:
+      x: 500
+      y: 150
+    data:
+      subtype: orchestrator-prompt
+      category: agent
+      label: Load Skill
+      config:
+        prompt: >-
+          The trigger message below tells you the domain to observe and the log path.
+          Determine the domain (human, business, world, or self) and load the corresponding
+          observe skill using the load_skill tool — for example if the domain is "human",
+          load the skill "observe-human". Load the skill only — do NOT execute it, do NOT
+          start observing yet. Just confirm the skill is loaded and wait for further instructions.
+  - id: node-2000000000002
+    type: workflow
+    position:
+      x: 500
+      y: 350
+    data:
+      subtype: agent
+      category: agent
+      label: Observe
+      config:
+        agentId: observer
+        agentName: Observer
+        additionalPrompt: ""
+        orchestratorInstructions: >-
+          You have already loaded the domain-specific observe skill. Use the skill's topics
+          and instructions to create a <PROMPT> tag for each observation topic. Each observer
+          agent should write its own log file at the log path from the trigger message.
+        successCriteria: All observation topics from the skill have been dispatched and completed
+        completionContract: Exit when all observer agents have written their log files
+  - id: node-2000000000003
+    type: workflow
+    position:
+      x: 500
+      y: 550
+    data:
+      subtype: response
+      category: io
+      label: Done
+      config:
+        responseTemplate: Observation complete for the requested domain.
+edges:
+  - id: e-trigger-to-load-skill
+    source: node-2000000000001
+    target: node-2000000000010
+    animated: true
+  - id: e-load-skill-to-observe
+    source: node-2000000000010
+    target: node-2000000000002
+    animated: true
+  - id: e-observe-to-done
+    source: node-2000000000002
+    target: node-2000000000003
+    animated: true
+_status: production
+viewport:
+  x: -522.6908442283709
+  y: -35.5
+  zoom: 2

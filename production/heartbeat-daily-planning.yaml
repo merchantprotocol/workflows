@@ -3,20 +3,8 @@ name: Heartbeat Daily Planning
 description: This planning process runs by itself daily
 version: 1
 createdAt: 2026-03-17T05:24:02.351Z
-updatedAt: 2026-03-17T20:50:58.581Z
+updatedAt: 2026-03-18T03:23:43.135Z
 nodes:
-  - id: node-1773725802728
-    type: workflow
-    position:
-      x: 161.6019134896797
-      y: 335.9400148404594
-    data:
-      subtype: sub-workflow
-      category: flow-control
-      label: Observe Self
-      config:
-        workflowId: workflow-observe-self
-        awaitResponse: true
   - id: node-1773726527762
     type: workflow
     position:
@@ -27,20 +15,10 @@ nodes:
       category: flow-control
       label: Observe Human
       config:
-        workflowId: workflow-observe-human
+        workflowId: workflow-observe
         awaitResponse: true
-  - id: node-1773726630045
-    type: workflow
-    position:
-      x: 362.6362127095882
-      y: 728.7830853214213
-    data:
-      subtype: sub-workflow
-      category: flow-control
-      label: Plan Human
-      config:
-        workflowId: null
-        awaitResponse: true
+        agentId: Observer
+        orchestratorPrompt: Run the observe workflow for the human domain. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/human/
   - id: node-1773726731262
     type: workflow
     position:
@@ -51,25 +29,15 @@ nodes:
       category: flow-control
       label: Think Human
       config:
-        workflowId: null
+        workflowId: workflow-thinker
         awaitResponse: true
-  - id: node-1773727650225
-    type: workflow
-    position:
-      x: 166.67888927401822
-      y: 1116.3407609342796
-    data:
-      subtype: sub-workflow
-      category: flow-control
-      label: Think Self
-      config:
-        workflowId: null
-        awaitResponse: true
+        agentId: Thinker
+        orchestratorPrompt: This thinking process needs to be done on the human observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of the human log files.
   - id: node-1773727663008
     type: workflow
     position:
-      x: 167.07156281318058
-      y: 1246.9408445457482
+      x: 162.24796712868041
+      y: 1256.3870527612278
     data:
       subtype: sub-workflow
       category: flow-control
@@ -87,8 +55,10 @@ nodes:
       category: flow-control
       label: Observe Business
       config:
-        workflowId: workflow-observe-business
+        workflowId: workflow-observe
         awaitResponse: true
+        agentId: Observer
+        orchestratorPrompt: Run the observe workflow for the business domain. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/business/
   - id: node-1773727873275
     type: workflow
     position:
@@ -99,8 +69,10 @@ nodes:
       category: flow-control
       label: Think Business
       config:
-        workflowId: null
+        workflowId: workflow-thinker
         awaitResponse: true
+        agentId: Thinker
+        orchestratorPrompt: This thinking process needs to be done on the Business observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of the Business log files.
   - id: node-1773728205625
     type: workflow
     position:
@@ -111,8 +83,10 @@ nodes:
       category: flow-control
       label: Observe World
       config:
-        workflowId: workflow-observe-world
+        workflowId: workflow-observe
         awaitResponse: true
+        agentId: Observer
+        orchestratorPrompt: Run the observe workflow for the world domain. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/world/
   - id: node-1773728214276
     type: workflow
     position:
@@ -123,37 +97,15 @@ nodes:
       category: flow-control
       label: Think World
       config:
-        workflowId: null
+        workflowId: workflow-thinker
         awaitResponse: true
-  - id: node-1773729507379
-    type: workflow
-    position:
-      x: 544.8021095688791
-      y: 853.5979669704296
-    data:
-      subtype: sub-workflow
-      category: flow-control
-      label: Plan World
-      config:
-        workflowId: null
-        awaitResponse: true
-  - id: node-1773729512245
-    type: workflow
-    position:
-      x: 712.428312431197
-      y: 999.4146288372885
-    data:
-      subtype: sub-workflow
-      category: flow-control
-      label: Plan Business
-      config:
-        workflowId: null
-        awaitResponse: true
+        agentId: Thinker
+        orchestratorPrompt: This thinking process needs to be done on the World observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of the World log files.
   - id: node-1773730813990
     type: workflow
     position:
-      x: 158.83924970555057
-      y: 1377.3764316225545
+      x: 152.40778879288368
+      y: 1378.9842968507214
     data:
       subtype: sub-workflow
       category: flow-control
@@ -164,8 +116,8 @@ nodes:
   - id: node-1773759817932
     type: workflow
     position:
-      x: 535.7765995103974
-      y: 51.0642587800545
+      x: 534.8603570863182
+      y: -22.235135146284204
     data:
       subtype: schedule
       category: trigger
@@ -183,8 +135,8 @@ nodes:
   - id: node-1773759894327
     type: workflow
     position:
-      x: 461.7721873844966
-      y: 50.56940761940155
+      x: 410.4626116360595
+      y: -18.950486307610305
     data:
       subtype: chat-app
       category: trigger
@@ -192,6 +144,76 @@ nodes:
       config:
         triggerType: chat-app
         triggerDescription: ""
+  - id: node-1773803963347
+    type: workflow
+    position:
+      x: 364.4576156914772
+      y: 762.2807431884169
+    data:
+      subtype: sub-workflow
+      category: flow-control
+      label: Plan Human
+      config:
+        workflowId: workflow-thinker
+        awaitResponse: true
+        agentId: Thinker
+        orchestratorPrompt: ""
+  - id: node-1773803990845
+    type: workflow
+    position:
+      x: 545.4619930958181
+      y: 877.1395264561747
+    data:
+      subtype: sub-workflow
+      category: flow-control
+      label: Plan World
+      config:
+        workflowId: workflow-thinker
+        awaitResponse: true
+        agentId: Thinker
+        orchestratorPrompt: ""
+  - id: node-1773803993449
+    type: workflow
+    position:
+      x: 712.0004035226135
+      y: 992.5445007374112
+    data:
+      subtype: sub-workflow
+      category: flow-control
+      label: Plan Business
+      config:
+        workflowId: workflow-thinker
+        awaitResponse: true
+        agentId: Thinker
+        orchestratorPrompt: ""
+  - id: node-1773804054485
+    type: workflow
+    position:
+      x: 154.96742815011322
+      y: 339.73114266484606
+    data:
+      subtype: sub-workflow
+      category: flow-control
+      label: Observe Self
+      config:
+        workflowId: workflow-observe
+        awaitResponse: true
+        agentId: Observer
+        orchestratorPrompt: Run the observe workflow for the self domain. Write observation logs to ~/sulla/daily-logs/{{YYYY-MM-DD}}/self/
+  - id: node-1773804121904
+    type: workflow
+    position:
+      x: 161.13874155456392
+      y: 1117.2862517711417
+    data:
+      subtype: sub-workflow
+      category: flow-control
+      label: Think self
+      config:
+        workflowId: null
+        awaitResponse: true
+        agentId: Observer
+        orchestratorPrompt: This thinking process needs to be done on yourself observation logs. We wanna make sure that we're very specific about what logs that we look at in order to create this identity file so pass the path as a GLOB for all of yourself log files.
 edges:
   - id: vueflow__edge-node-1773726527762-node-1773726731262
     source: node-1773726527762
@@ -207,58 +229,9 @@ edges:
     targetHandle: null
     label: ""
     animated: false
-  - id: vueflow__edge-node-1773725802728-node-1773727650225
-    source: node-1773725802728
-    target: node-1773727650225
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
-  - id: vueflow__edge-node-1773726731262-node-1773726630045
-    source: node-1773726731262
-    target: node-1773726630045
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
   - id: vueflow__edge-node-1773728205625-node-1773728214276
     source: node-1773728205625
     target: node-1773728214276
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
-  - id: vueflow__edge-node-1773728214276-node-1773729507379
-    source: node-1773728214276
-    target: node-1773729507379
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
-  - id: vueflow__edge-node-1773727650225-node-1773727663008
-    source: node-1773727650225
-    target: node-1773727663008
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
-  - id: vueflow__edge-node-1773727873275-node-1773729512245
-    source: node-1773727873275
-    target: node-1773729512245
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
-  - id: vueflow__edge-node-1773759817932-node-1773759894327
-    source: node-1773759817932
-    target: node-1773759894327
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: false
-  - id: vueflow__edge-node-1773759894327-node-1773725802728
-    source: node-1773759894327
-    target: node-1773725802728
     sourceHandle: null
     targetHandle: null
     label: ""
@@ -319,29 +292,99 @@ edges:
     targetHandle: null
     label: ""
     animated: true
-  - id: vueflow__edge-node-1773726630045-node-1773729507379
-    source: node-1773726630045
-    target: node-1773729507379
+  - id: vueflow__edge-node-1773727873275-node-1773803993449
+    source: node-1773727873275
+    target: node-1773803993449
     sourceHandle: null
     targetHandle: null
     label: ""
     animated: true
-  - id: vueflow__edge-node-1773729507379-node-1773729512245
-    source: node-1773729507379
-    target: node-1773729512245
+  - id: vueflow__edge-node-1773726731262-node-1773803963347
+    source: node-1773726731262
+    target: node-1773803963347
     sourceHandle: null
     targetHandle: null
     label: ""
     animated: true
-  - id: vueflow__edge-node-1773729512245-node-1773727650225
-    source: node-1773729512245
-    target: node-1773727650225
+  - id: vueflow__edge-node-1773803963347-node-1773803990845
+    source: node-1773803963347
+    target: node-1773803990845
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773803990845-node-1773803993449
+    source: node-1773803990845
+    target: node-1773803993449
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773759894327-node-1773804054485
+    source: node-1773759894327
+    target: node-1773804054485
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773759817932-node-1773726527762
+    source: node-1773759817932
+    target: node-1773726527762
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773759817932-node-1773804054485
+    source: node-1773759817932
+    target: node-1773804054485
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773759817932-node-1773728205625
+    source: node-1773759817932
+    target: node-1773728205625
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773759817932-node-1773727750407
+    source: node-1773759817932
+    target: node-1773727750407
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773804054485-node-1773804121904
+    source: node-1773804054485
+    target: node-1773804121904
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773803993449-node-1773804121904
+    source: node-1773803993449
+    target: node-1773804121904
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773804121904-node-1773727663008
+    source: node-1773804121904
+    target: node-1773727663008
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1773728214276-node-1773803990845
+    source: node-1773728214276
+    target: node-1773803990845
     sourceHandle: null
     targetHandle: null
     label: ""
     animated: true
 _status: production
 viewport:
-  x: 231.58447496888203
-  y: 11.181125709325727
-  zoom: 0.6292119245325428
+  x: -39.71593741856108
+  y: -316.8811138697747
+  zoom: 0.8408039246773965
