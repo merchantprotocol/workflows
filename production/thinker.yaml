@@ -3,7 +3,7 @@ name: Thinker
 description: Analyze human identity through 11 specialized lenses, compile into strategic plan
 version: 2
 createdAt: 2026-03-17T21:15:00.000Z
-updatedAt: 2026-03-19T05:33:47.767Z
+updatedAt: 2026-03-19T20:53:12.298Z
 nodes:
   - id: node-1000000000001
     type: workflow
@@ -492,6 +492,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: 27.791131080189928
-  y: -153.6755736719149
-  zoom: 0.6858666442953025
+  x: -309.66942987094626
+  y: 455.2832114702843
+  zoom: 1.1522173138311491

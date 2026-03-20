@@ -1,9 +1,9 @@
 id: workflow-goal-cycle
 name: Goal Cycle
-description: Reusable goal-setting sub-workflow — runs 7 perspective lenses in parallel, synthesizes a harmonic goal, then refines through 6 critic rounds
-version: 1
+description: Reusable goal-setting sub-workflow — runs 7 perspective lenses in parallel, synthesizes a harmonic goal, writes to goals file, then refines through 6 independent critic rounds that each read/edit the file directly
+version: 2
 createdAt: 2026-03-18T06:00:00.000Z
-updatedAt: 2026-03-18T06:00:00.000Z
+updatedAt: 2026-03-19T23:40:00.000Z
 nodes:
   - id: node-3000000000001
     type: workflow
@@ -16,7 +16,7 @@ nodes:
       label: Trigger
       config:
         triggerType: chat-app
-        triggerDescription: Receives time horizon, compressed inputs, and constraints from parent planner workflow
+        triggerDescription: Receives time horizon, domain, compressed inputs, and constraints from parent planner workflow
 
   - id: node-3000000000002
     type: workflow
@@ -28,7 +28,13 @@ nodes:
       category: agent
       label: Load Skill
       config:
-        prompt: Load the goals-perspectives skill using the load_skill tool. Do NOT execute it — just load it and wait for further instructions.
+        prompt: |-
+          The trigger message tells you the time horizon and domain context.
+          Determine the domain (human, business, world, or agent) from the trigger.
+
+          Step 1: Call your file_search tool with query "goals-perspectives" to find the goals-perspectives skill file.
+          Step 2: Use exec to read the full contents of the SKILL.md file found in step 1.
+          Step 3: Return the complete skill content as your output. Do NOT summarize — return the full text.
 
   - id: node-3000000000003
     type: workflow
@@ -192,18 +198,45 @@ nodes:
         successCriteria: A unified plan with cohesive goal, alignment map, and resolved conflicts
         completionContract: Exit when the synthesized plan is complete
 
-  # Critic loop — for-each over the 6 critic prompts
-  - id: node-3000000000030
+  # Write goals to file BEFORE critic rounds
+  - id: node-3000000000025
     type: workflow
     position:
       x: 500
       y: 880
     data:
+      subtype: agent
+      category: agent
+      label: Write Goals to File
+      config:
+        agentId: goal-setter
+        agentName: Goals Writer
+        additionalPrompt: ""
+        orchestratorInstructions: |-
+          You must write the synthesized plan to the goals file. Follow these steps exactly:
+
+          1. Determine the domain (human, business, world, or agent) from the conversation context.
+          2. The goals file path is: ~/sulla/identity/{domain}/goals.md
+          3. Read the current goals file using exec (it may be empty or have content from a previous horizon).
+          4. Take the synthesized plan from the Harmonic Synthesis output above and format it according to the Goals Journal format for the relevant time horizon section.
+          5. If the file already has content from a previous time horizon, APPEND this horizon's section — do NOT overwrite previous horizons.
+          6. Write the complete file using exec.
+          7. Confirm what you wrote and to which file path.
+        successCriteria: Goals file written with the synthesized plan for this time horizon
+        completionContract: Exit when the file is saved and confirmed
+
+  # Critic loop — 6 rounds, each critic reads/edits the file independently
+  - id: node-3000000000030
+    type: workflow
+    position:
+      x: 500
+      y: 1020
+    data:
       subtype: loop
       category: flow-control
       label: Critic Rounds
       config:
-        loopMode: for-each
+        loopMode: iterations
         maxIterations: 6
         condition: ""
         conditionMode: template
@@ -212,26 +245,45 @@ nodes:
     type: workflow
     position:
       x: 500
-      y: 1020
+      y: 1160
     data:
       subtype: orchestrator-prompt
       category: agent
       label: Inject Critic Prompt
       config:
         prompt: |-
-          You are reviewing and improving a plan. Here is the current version of the plan:
+          You are preparing instructions for critic round {{loop.index}} (0-indexed).
 
-          {{loop.currentItem.result}}
+          Determine the domain (human, business, world, or agent) from the conversation context.
+          The goals file is at: ~/sulla/identity/{domain}/goals.md
 
-          Apply the following critique methodology to this plan. Be specific, brutal, and constructive. After your critique, rewrite the ENTIRE plan with improvements incorporated:
+          Based on the round number, select the correct critic methodology below and return it as the critic's instructions:
 
-          {{loop.currentItem.label}}
+          ROUND 0 — Weakness Audit:
+          Read the goals file. List the 3 biggest weaknesses in the plan. Be specific and brutal — not "could be more detailed" but "this milestone is unmeasurable because [reason]" or "this daily habit conflicts with the observed energy pattern at [time]." Then rewrite the ENTIRE goals file fixing those weaknesses and save it.
+
+          ROUND 1 — Devil's Advocate:
+          Read the goals file. Play devil's advocate against the plan. What would the strongest critic say? What assumptions is this plan making that could be dead wrong? Where is it optimistic without evidence? What external factors could derail it? Now revise the entire goals file to address those criticisms and save it.
+
+          ROUND 2 — Expert Panel:
+          Read the goals file. Imagine 3 domain experts reviewed this plan: (a) A behavioral psychologist — are the habit changes realistic given the identity's patterns? (b) A strategic planner — is the goal decomposition sound? are milestones properly sequenced? (c) Someone who knows this person well — does this plan match who they actually are, or who they wish they were? What would each expert push back on? What would they add? Now rewrite the goals file so it passes all 3 expert reviews and save it.
+
+          ROUND 3 — Assumption Audit:
+          Read the goals file. List every assumption baked into this plan. Flag which ones are weak or unverified. Specifically: assumptions about available time, energy and motivation, external factors remaining stable, skills the person may not have yet, other people's cooperation. Now rewrite the goals file with those assumptions either defended with evidence from the identity file or removed entirely, and save it.
+
+          ROUND 4 — Quality Ratchet:
+          Read the goals file. Rate this plan honestly on a scale of 1-10. What would a 10/10 version look like? What's missing? What's there that shouldn't be? What would make someone read this plan and think "this person is going to succeed"? Now write the 10/10 version of the goals file and save it.
+
+          ROUND 5 — Coherence Check:
+          Read the goals file end to end. Find any internal contradictions, vague claims, unsupported assertions, or sections that don't connect to the cohesive goal. Mark them. Also check: does the daily/weekly level actually ladder up to the 13-week arc? Does the 13-week arc actually serve the 2-year vision? Eliminate every gap, then produce the final clean version of the goals file and save it.
+
+          Return ONLY the instructions for the round matching {{loop.index}}. Include the file path and the instruction to read the file first, apply the critique, then rewrite and save it.
 
   - id: node-3000000000032
     type: workflow
     position:
       x: 500
-      y: 1160
+      y: 1300
     data:
       subtype: agent
       category: agent
@@ -240,37 +292,47 @@ nodes:
         agentId: goal-setter
         agentName: Plan Critic
         additionalPrompt: ""
-        orchestratorInstructions: ""
-        successCriteria: A rewritten plan that addresses the specific critique
-        completionContract: Exit when the revised plan is complete
+        orchestratorInstructions: |-
+          You are an independent goals plan critic. You have NO knowledge of what previous critics may have changed.
+
+          Follow the critic instructions provided to you from the upstream prompt exactly:
+          1. Use exec to read the goals file at the path specified.
+          2. Apply your assigned critique methodology thoroughly.
+          3. Rewrite the ENTIRE goals file with your improvements incorporated.
+          4. Use exec to save the updated file.
+          5. Confirm what you changed and why.
+
+          Be specific, brutal, and constructive. Every change must improve the plan.
+        successCriteria: Goals file rewritten with critique improvements applied
+        completionContract: Exit when the updated file is saved
 
   # Response
   - id: node-3000000000040
     type: workflow
     position:
       x: 500
-      y: 1340
+      y: 1480
     data:
       subtype: response
       category: io
       label: Refined Plan
       config:
-        responseTemplate: Return the final refined plan after all critic rounds.
+        responseTemplate: Goal cycle complete for this time horizon. The goals file has been written and refined through 6 independent critic rounds.
 
 edges:
-  # Trigger → Load Skill
+  # Trigger -> Load Skill
   - id: e-trigger-skill
     source: node-3000000000001
     target: node-3000000000002
     animated: true
 
-  # Load Skill → Parallel
+  # Load Skill -> Parallel
   - id: e-skill-parallel
     source: node-3000000000002
     target: node-3000000000003
     animated: true
 
-  # Parallel → 7 lenses
+  # Parallel -> 7 lenses
   - id: e-parallel-financial
     source: node-3000000000003
     target: node-3000000000010
@@ -300,7 +362,7 @@ edges:
     target: node-3000000000016
     animated: true
 
-  # 7 lenses → Merge
+  # 7 lenses -> Merge
   - id: e-financial-merge
     source: node-3000000000010
     target: node-3000000000020
@@ -330,21 +392,27 @@ edges:
     target: node-3000000000020
     animated: true
 
-  # Merge → Synthesis
+  # Merge -> Synthesis
   - id: e-merge-synthesis
     source: node-3000000000020
     target: node-3000000000021
     animated: true
 
-  # Synthesis → Critic Loop entry
-  - id: e-synthesis-loop
+  # Synthesis -> Write Goals to File
+  - id: e-synthesis-write
     source: node-3000000000021
+    target: node-3000000000025
+    animated: true
+
+  # Write Goals -> Critic Loop entry
+  - id: e-write-loop
+    source: node-3000000000025
     target: node-3000000000030
     sourceHandle: null
     targetHandle: loop-entry
     animated: true
 
-  # Loop start → Inject Critic Prompt
+  # Loop start -> Inject Critic Prompt
   - id: e-loop-inject
     source: node-3000000000030
     target: node-3000000000031
@@ -352,13 +420,13 @@ edges:
     targetHandle: null
     animated: true
 
-  # Inject → Critic Agent
+  # Inject -> Critic Agent
   - id: e-inject-critic
     source: node-3000000000031
     target: node-3000000000032
     animated: true
 
-  # Critic → Loop back
+  # Critic -> Loop back
   - id: e-critic-loopback
     source: node-3000000000032
     target: node-3000000000030
@@ -366,10 +434,15 @@ edges:
     targetHandle: loop-back
     animated: true
 
-  # Loop exit → Response
+  # Loop exit -> Response
   - id: e-loop-response
     source: node-3000000000030
     target: node-3000000000040
     sourceHandle: loop-exit
     targetHandle: null
     animated: true
+_status: production
+viewport:
+  x: -709.3429626840475
+  y: -481.12812725292224
+  zoom: 1.824703875770942

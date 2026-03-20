@@ -1,9 +1,9 @@
 id: workflow-observe
 name: Observe
 description: Universal observation workflow — reads domain-specific observe skill topics and dispatches parallel observer agents
-version: 3
+version: 4
 createdAt: 2026-03-18T04:00:00.000Z
-updatedAt: 2026-03-19T20:15:00.000Z
+updatedAt: 2026-03-19T21:07:38.429Z
 nodes:
   - id: node-2000000000001
     type: workflow
@@ -30,10 +30,17 @@ nodes:
         prompt: |
           The trigger message tells you the domain to observe and the log path.
           Determine the domain (human, business, world, or agent) from the trigger.
-          Read the observe skill file at ~/sulla/skills/observe-{domain}/SKILL.md
-          (e.g. for "human" read ~/sulla/skills/observe-human/SKILL.md).
-          Output the full contents of the skill file — this will be passed to the
-          observer agent in the next step.
+
+          Step 1: Call your file_search tool with query "observe-{domain} SKILL.md"
+          to locate the skill file. For the human domain, search for
+          "observe-human SKILL.md".
+
+          Step 2: Use the file path returned by file_search to read the skill.
+          Call your exec tool with: cat {path-from-file-search}
+          Use the FULL absolute path returned by file_search, not a relative path.
+
+          Output the full contents of the skill file — this contains the
+          instructions you will use to direct the observer agents.
   - id: node-2000000000002
     type: workflow
     position:
@@ -84,6 +91,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: -892.3099395840279
-  y: -2343.565446745839
-  zoom: 2
+  x: -78.90790279492325
+  y: 23.700974571603012
+  zoom: 0.9753655299287737
