@@ -1,6 +1,6 @@
 id: workflow-thinker
 name: Thinker
-description: Analyze human identity through 10 specialized lenses, compile into strategic plan
+description: Analyze human identity through 11 specialized lenses, compile into strategic plan
 version: 2
 createdAt: 2026-03-17T21:15:00.000Z
 updatedAt: 2026-03-18T03:16:46.139Z
@@ -171,6 +171,22 @@ nodes:
         orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Identify routine, transient, or low-value observations that should NOT be included in the identity file. List them with brief reasoning why they are irrelevant for long-term planning. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/irrelevance.md
         successCriteria: Markdown analysis listing filtered items
         completionContract: Exit when analysis file is complete
+  - id: node-1000000000013
+    type: workflow
+    position:
+      x: 988
+      y: 240
+    data:
+      subtype: agent
+      category: agent
+      label: AI vs Emotional State
+      config:
+        agentId: thinker-worker
+        agentName: AI Efforts Lens
+        additionalPrompt: ""
+        orchestratorInstructions: Analyze ~/sulla/daily-logs/ for recent human observations. Examine how AI actions, suggestions, frequency, and style are affecting the human's observed energy, mood, stress, confidence, and engagement. Identify where AI is genuinely helping vs adding friction. Flag emotional signals showing AI misalignment or over/under-reaching. Note patterns in when AI assistance lands well vs poorly. Output to ~/sulla/daily-logs/{{YYYY-MM-DD}}/thinking/ai-vs-emotional-state.md
+        successCriteria: Markdown analysis with evidence-based observations
+        completionContract: Exit when analysis file is complete
   - id: node-1773786723809
     type: workflow
     position:
@@ -193,7 +209,7 @@ nodes:
       label: Process Each Lens
       config:
         loopMode: for-each
-        maxIterations: 10
+        maxIterations: 11
         condition: ""
         conditionMode: template
   - id: node-1773793960431
@@ -227,7 +243,7 @@ nodes:
         maxIterations: 10
         condition: ""
         conditionMode: template
-        orchestratorPrompt: You have processed the 10 default identity lenses. Review the identity file and the lens analyses. Are there additional perspectives that would strengthen this identity profile? How many additional custom lenses do you want to run? Respond with just a number (0 if none needed).
+        orchestratorPrompt: You have processed the 11 default identity lenses. Review the identity file and the lens analyses. Are there additional perspectives that would strengthen this identity profile? How many additional custom lenses do you want to run? Respond with just a number (0 if none needed).
   - id: node-1773800000003
     type: workflow
     position:
@@ -349,6 +365,10 @@ edges:
     source: node-1000000000002
     target: node-1000000000012
     animated: true
+  - id: e12
+    source: node-1000000000002
+    target: node-1000000000013
+    animated: true
   - id: e-life-stage-merge
     source: node-1000000000004
     target: node-1773786723809
@@ -383,6 +403,10 @@ edges:
     animated: true
   - id: e-irrelevance-merge
     source: node-1000000000012
+    target: node-1773786723809
+    animated: true
+  - id: e-ai-efforts-merge
+    source: node-1000000000013
     target: node-1773786723809
     animated: true
   - id: vueflow__edge-node-1773786723809-node-1773787870504loop-entry

@@ -3,13 +3,13 @@ name: Observe
 description: Universal observation workflow — loads domain-specific observe skill and delegates to parallel observer agents
 version: 1
 createdAt: 2026-03-18T04:00:00.000Z
-updatedAt: 2026-03-18T03:38:54.352Z
+updatedAt: 2026-03-18T15:31:09.988Z
 nodes:
   - id: node-2000000000001
     type: workflow
     position:
-      x: 500
-      y: 50
+      x: 496.7673888255416
+      y: 77.80045610034206
     data:
       subtype: chat-app
       category: trigger
@@ -20,24 +20,19 @@ nodes:
   - id: node-2000000000010
     type: workflow
     position:
-      x: 500
-      y: 150
+      x: 496.12086659064994
+      y: 206.24743443557583
     data:
       subtype: orchestrator-prompt
       category: agent
       label: Load Skill
       config:
-        prompt: >-
-          The trigger message below tells you the domain to observe and the log path.
-          Determine the domain (human, business, world, or self) and load the corresponding
-          observe skill using the load_skill tool — for example if the domain is "human",
-          load the skill "observe-human". Load the skill only — do NOT execute it, do NOT
-          start observing yet. Just confirm the skill is loaded and wait for further instructions.
+        prompt: The trigger message below tells you the domain to observe and the log path. Determine the domain (human, business, world, or agent) and load the corresponding observe skill using the load_skill tool — for example if the domain is "human", load the skill "observe-human". If the domain is "agent", load the skill "observe-agent". Load the skill only — do NOT execute it, do NOT start observing yet. Just confirm the skill is loaded and wait for further instructions.
   - id: node-2000000000002
     type: workflow
     position:
-      x: 500
-      y: 350
+      x: 496.76738882554173
+      y: 360.34435575826683
     data:
       subtype: agent
       category: agent
@@ -46,17 +41,14 @@ nodes:
         agentId: observer
         agentName: Observer
         additionalPrompt: ""
-        orchestratorInstructions: >-
-          You have already loaded the domain-specific observe skill. Use the skill's topics
-          and instructions to create a <PROMPT> tag for each observation topic. Each observer
-          agent should write its own log file at the log path from the trigger message.
+        orchestratorInstructions: You have already loaded the domain-specific observe skill. Use the skill's topics and instructions to create a <PROMPT> tag for each observation topic. Each observer agent should write its own log file at the log path from the trigger message.
         successCriteria: All observation topics from the skill have been dispatched and completed
         completionContract: Exit when all observer agents have written their log files
   - id: node-2000000000003
     type: workflow
     position:
-      x: 500
-      y: 550
+      x: 496.30406210108924
+      y: 507.8455992302411
     data:
       subtype: response
       category: io
@@ -78,6 +70,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: -522.6908442283709
-  y: -35.5
+  x: -828.5276477430737
+  y: -40.209150445013165
   zoom: 2
