@@ -1,6 +1,6 @@
 id: workflow-goal-cycle
 name: Goal Cycle
-description: Reusable goal-setting sub-workflow — runs 7 perspective lenses in parallel, synthesizes a harmonic goal, writes to goals file, then refines through 6 independent critic rounds that each read/edit the file directly
+description: Reusable goal-setting sub-workflow — runs 7 perspective lenses in parallel, synthesizes a harmonic goal, writes to goals file, then validates through timeline & relevance audit and financial reality audit
 version: 2
 createdAt: 2026-03-18T06:00:00.000Z
 updatedAt: 2026-03-19T23:40:00.000Z
@@ -225,86 +225,150 @@ nodes:
         successCriteria: Goals file written with the synthesized plan for this time horizon
         completionContract: Exit when the file is saved and confirmed
 
-  # Critic loop — 6 rounds, each critic reads/edits the file independently
-  - id: node-3000000000030
+  # Single critic — Timeline & Relevance Audit
+  - id: node-3000000000032
     type: workflow
     position:
       x: 500
       y: 1020
     data:
-      subtype: loop
-      category: flow-control
-      label: Critic Rounds
+      subtype: agent
+      category: agent
+      label: Timeline & Relevance Critic
       config:
-        loopMode: iterations
-        maxIterations: 6
-        condition: ""
-        conditionMode: template
+        agentId: goal-setter
+        agentName: Timeline Critic
+        additionalPrompt: ""
+        orchestratorInstructions: |-
+          You are the Timeline & Relevance critic. Your job is to make sure this plan is grounded in CURRENT reality and that every goal has a realistic, defensible timeline.
 
-  - id: node-3000000000031
+          Determine the domain (human, business, world, or agent) from the conversation context.
+          The goals file is at: ~/sulla/identity/{domain}/goals.md
+
+          Use exec to read the goals file, then apply ALL of these checks:
+
+          1. INFORMATION FRESHNESS — Read the identity file for this domain. Check every fact, reference, and assumption in the goals file against the identity file. The identity file is the source of truth for what is CURRENT. Flag anything that references outdated information — past events treated as recent, circumstances that have changed, situations that no longer apply. Strip out or correct anything stale.
+
+          2. TIMELINE REALISM — For every milestone and target in the plan, ask: is this achievable in the stated timeframe given the CURRENT state documented in the identity file? Show the math. What needs to happen step by step to get there? Is the ramp realistic given current resources, capacity, and momentum? Are there dependencies that could delay it? Every target must have a defensible path from where things are NOW to where the goal says they will be.
+
+          3. SOURCE VETTING — Where did each goal come from? Is it derived from observed patterns and real data in the identity file, or is it aspirational without grounding? Every goal must trace back to something concrete — a current strength, a real opportunity, existing momentum. Goals without real grounding get cut or rewritten.
+
+          4. TIMELINE SEQUENCING — Are the goals ordered correctly? Do dependencies flow right? Check that later milestones don't depend on outcomes that haven't been achieved yet. Verify that the 13-week arc connects to the 2-year vision with a credible path, and that daily/weekly goals actually move the needle on the 13-week targets.
+
+          After applying all checks, rewrite the ENTIRE goals file with your corrections. Be brutal — cut anything that fails these tests. Every goal that survives must have a realistic timeline, current data backing it, and a clear source.
+
+          Use exec to save the updated file. Confirm what you changed and why.
+        successCriteria: Goals file rewritten with timeline-validated, source-vetted goals only
+        completionContract: Exit when the updated file is saved
+
+  # Second critic — Financial Reality Audit
+  - id: node-3000000000035
     type: workflow
     position:
       x: 500
       y: 1160
     data:
-      subtype: orchestrator-prompt
+      subtype: agent
       category: agent
-      label: Inject Critic Prompt
+      label: Financial Reality Critic
       config:
-        prompt: |-
-          You are preparing instructions for critic round {{loop.index}} (0-indexed).
+        agentId: goal-setter
+        agentName: Financial Reality Critic
+        additionalPrompt: ""
+        orchestratorInstructions: |-
+          You are the Financial Reality critic. Your job is to ensure every financial goal and lifestyle aspiration in this plan is grounded in REAL COSTS — not vague ambition.
 
           Determine the domain (human, business, world, or agent) from the conversation context.
           The goals file is at: ~/sulla/identity/{domain}/goals.md
+          The identity file is at: ~/sulla/identity/{domain}/identity.md
+          The world identity file is at: ~/sulla/identity/world/identity.md
 
-          Based on the round number, select the correct critic methodology below and return it as the critic's instructions:
+          ## STEP 1: EXTRACT FINANCIAL PICTURE
 
-          ROUND 0 — Weakness Audit:
-          Read the goals file. List the 3 biggest weaknesses in the plan. Be specific and brutal — not "could be more detailed" but "this milestone is unmeasurable because [reason]" or "this daily habit conflicts with the observed energy pattern at [time]." Then rewrite the ENTIRE goals file fixing those weaknesses and save it.
+          Use exec to read the goals file AND the identity file for this domain. Extract:
 
-          ROUND 1 — Devil's Advocate:
-          Read the goals file. Play devil's advocate against the plan. What would the strongest critic say? What assumptions is this plan making that could be dead wrong? Where is it optimistic without evidence? What external factors could derail it? Now revise the entire goals file to address those criticisms and save it.
+          A. STATED INCOME GOALS — What revenue/income targets does the plan declare? At what timeline?
+          B. LIFESTYLE SIGNALS — Scan both files for anything that implies spending: housing (own/rent, desired area), vehicles, children (number, schooling type), travel desires, retirement age targets, insurance needs, debt obligations, savings targets, family size, location preferences, entertainment, subscriptions, food preferences.
+          C. LOCATION — Extract the user's city/metro area from the identity file. This determines all cost lookups.
+          D. CURRENT FINANCIAL STATE — Current income, savings, debts, burn rate, funding source.
 
-          ROUND 2 — Expert Panel:
-          Read the goals file. Imagine 3 domain experts reviewed this plan: (a) A behavioral psychologist — are the habit changes realistic given the identity's patterns? (b) A strategic planner — is the goal decomposition sound? are milestones properly sequenced? (c) Someone who knows this person well — does this plan match who they actually are, or who they wish they were? What would each expert push back on? What would they add? Now rewrite the goals file so it passes all 3 expert reviews and save it.
+          If the domain is "business" or "world" or "agent", and there are no personal lifestyle signals, skip to Step 5 and validate only the business financial projections against market data. The full lifestyle model applies only when lifestyle signals are present (typically the "human" domain).
 
-          ROUND 3 — Assumption Audit:
-          Read the goals file. List every assumption baked into this plan. Flag which ones are weak or unverified. Specifically: assumptions about available time, energy and motivation, external factors remaining stable, skills the person may not have yet, other people's cooperation. Now rewrite the goals file with those assumptions either defended with evidence from the identity file or removed entirely, and save it.
+          ## STEP 2: RESEARCH REAL COSTS
 
-          ROUND 4 — Quality Ratchet:
-          Read the goals file. Rate this plan honestly on a scale of 1-10. What would a 10/10 version look like? What's missing? What's there that shouldn't be? What would make someone read this plan and think "this person is going to succeed"? Now write the 10/10 version of the goals file and save it.
+          For every lifestyle signal found in Step 1, research the ACTUAL cost in the user's metro area. Use exec to run web searches for current data. Search for:
 
-          ROUND 5 — Coherence Check:
-          Read the goals file end to end. Find any internal contradictions, vague claims, unsupported assertions, or sections that don't connect to the cohesive goal. Mark them. Also check: does the daily/weekly level actually ladder up to the 13-week arc? Does the 13-week arc actually serve the 2-year vision? Eliminate every gap, then produce the final clean version of the goals file and save it.
+          - Median home price OR median rent in the user's city/metro (match to what the identity signals — buying vs renting)
+          - Property tax rate for their county/state
+          - State + local income tax rates for their state
+          - Average monthly utilities in their city
+          - Average car payment + insurance + fuel per vehicle the household needs
+          - Childcare or school tuition costs if children are mentioned
+          - Health insurance costs (individual/family plan in their state)
+          - Grocery costs for their household size
+          - Any other specific lifestyle items mentioned (travel budget, gym, hobbies)
 
-          Return ONLY the instructions for the round matching {{loop.index}}. Include the file path and the instruction to read the file first, apply the critique, then rewrite and save it.
+          If a web search fails or returns no data for a specific item, use these conservative benchmarks and FLAG that you used a default:
+          - Housing: 28% of gross monthly income (or $2,500/mo baseline for HCOL areas, $1,500 for MCOL, $1,000 for LCOL)
+          - Transportation: $800/mo per vehicle
+          - Food: $400/mo per adult, $250/mo per child
+          - Health insurance: $500/mo individual, $1,200/mo family
+          - Utilities: $300/mo
+          - Childcare: $1,500/mo per child (HCOL), $800/mo (LCOL)
 
-  - id: node-3000000000032
-    type: workflow
-    position:
-      x: 500
-      y: 1300
-    data:
-      subtype: agent
-      category: agent
-      label: Critic
-      config:
-        agentId: goal-setter
-        agentName: Plan Critic
-        additionalPrompt: ""
-        orchestratorInstructions: |-
-          You are an independent goals plan critic. You have NO knowledge of what previous critics may have changed.
+          ## STEP 3: BUILD THE FINANCIAL MODEL
 
-          Follow the critic instructions provided to you from the upstream prompt exactly:
-          1. Use exec to read the goals file at the path specified.
-          2. Apply your assigned critique methodology thoroughly.
-          3. Rewrite the ENTIRE goals file with your improvements incorporated.
-          4. Use exec to save the updated file.
-          5. Confirm what you changed and why.
+          Construct a monthly budget breakdown:
 
-          Be specific, brutal, and constructive. Every change must improve the plan.
-        successCriteria: Goals file rewritten with critique improvements applied
-        completionContract: Exit when the updated file is saved
+          | Category | Monthly Cost | Annual Cost | Source |
+          |----------|-------------|-------------|--------|
+          | Housing (mortgage/rent + tax + insurance) | $X | $X | [source] |
+          | Transportation | $X | $X | [source] |
+          | Food & Groceries | $X | $X | [source] |
+          | Childcare / Education | $X | $X | [source] |
+          | Health Insurance | $X | $X | [source] |
+          | Utilities | $X | $X | [source] |
+          | Savings / Emergency Fund (min 10%) | $X | $X | calculated |
+          | Taxes (federal + state + local + self-employment) | $X | $X | [rate source] |
+          | Discretionary / Lifestyle | $X | $X | estimated |
+          | **TOTAL REQUIRED** | **$X** | **$X** | |
+
+          Then calculate:
+          - REQUIRED GROSS MONTHLY INCOME = Total monthly cost (pre-tax, accounting for tax burden)
+          - STATED INCOME TARGET from the goals file
+          - GAP = Required - Stated (positive means lifestyle exceeds income target)
+
+          ## STEP 4: GAP ANALYSIS AND RECONCILIATION
+
+          Compare the required income to the stated income goals AND to the revenue trajectory timeline in the plan.
+
+          A. If GAP <= 0 (income target covers lifestyle): Validate that the revenue RAMP can reach the target in the stated timeline. If the ramp is too slow, the person hits the income target eventually but lives beyond means during the ramp-up. Calculate the deficit during ramp-up months and flag it.
+
+          B. If GAP is 1-20% of stated target: Adjust the income target upward in the goals. Note what drove the increase.
+
+          C. If GAP is 20-50%: This is a serious mismatch. Present the conflict with full math. Show which lifestyle items are the biggest cost drivers. Offer two paths:
+             - PATH A: Scale income target to match lifestyle (show what revenue/client load that requires)
+             - PATH B: Scale lifestyle to match income (show which items to cut or defer and by how much)
+             Choose the path that better matches identity file signals (risk tolerance, priorities, life stage). Rewrite goals accordingly.
+
+          D. If GAP > 50%: The lifestyle and income target are fundamentally incompatible at the stated timeline. Show the math bluntly. Rewrite goals with a phased approach — what lifestyle is affordable at each revenue milestone? What lifestyle upgrades unlock at what income level?
+
+          ## STEP 5: REWRITE GOALS
+
+          Rewrite the ENTIRE goals file incorporating your financial reality findings:
+
+          - Every income/revenue target must now show what lifestyle it supports (or fails to support)
+          - Add a "Financial Reality" section showing the monthly budget model
+          - Adjust any timeline that assumed a lifestyle the income cannot support during that period
+          - For the 2-year vision: Does the endpoint income support the endpoint lifestyle?
+          - For the 13-week arc: What is financially achievable in 13 weeks given current state?
+          - For daily goals: Are there any daily financial actions missing (invoicing, lead gen, cost cutting)?
+
+          Do NOT remove goals that fail the financial test — ANNOTATE them with what they actually require. The user must see the real cost of their desires.
+
+          Use exec to save the updated file. Confirm what you changed and provide a summary of: (1) total lifestyle cost found, (2) income gap if any, (3) key adjustments made.
+        successCriteria: Goals file rewritten with financially grounded targets, real cost data, and gap analysis
+        completionContract: Exit when the updated file is saved with financial reality annotations
 
   # Response
   - id: node-3000000000040
@@ -317,7 +381,7 @@ nodes:
       category: io
       label: Refined Plan
       config:
-        responseTemplate: Goal cycle complete for this time horizon. The goals file has been written and refined through 6 independent critic rounds.
+        responseTemplate: Goal cycle complete for this time horizon. The goals file has been written and refined through timeline & relevance audit and financial reality audit.
 
 edges:
   # Trigger -> Load Skill
@@ -404,42 +468,22 @@ edges:
     target: node-3000000000025
     animated: true
 
-  # Write Goals -> Critic Loop entry
-  - id: e-write-loop
+  # Write Goals -> Timeline Critic
+  - id: e-write-critic
     source: node-3000000000025
-    target: node-3000000000030
-    sourceHandle: null
-    targetHandle: loop-entry
-    animated: true
-
-  # Loop start -> Inject Critic Prompt
-  - id: e-loop-inject
-    source: node-3000000000030
-    target: node-3000000000031
-    sourceHandle: loop-start
-    targetHandle: null
-    animated: true
-
-  # Inject -> Critic Agent
-  - id: e-inject-critic
-    source: node-3000000000031
     target: node-3000000000032
     animated: true
 
-  # Critic -> Loop back
-  - id: e-critic-loopback
+  # Timeline Critic -> Financial Reality Critic
+  - id: e-timeline-financial
     source: node-3000000000032
-    target: node-3000000000030
-    sourceHandle: null
-    targetHandle: loop-back
+    target: node-3000000000035
     animated: true
 
-  # Loop exit -> Response
-  - id: e-loop-response
-    source: node-3000000000030
+  # Financial Reality Critic -> Response
+  - id: e-financial-response
+    source: node-3000000000035
     target: node-3000000000040
-    sourceHandle: loop-exit
-    targetHandle: null
     animated: true
 _status: production
 viewport:

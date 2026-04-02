@@ -1,39 +1,32 @@
 id: workflow-1741000000001
 name: Daily Learning Workflow
-slug: daily-learning-workflow
 description: Nightly workflow that reviews conversation history, extracts learnings, identifies improvements, IMPLEMENTS fixes, and updates the learning repository
 version: 1
 enabled: true
-createdAt: "2026-03-16T01:00:00.000Z"
-updatedAt: "2026-03-16T01:43:00.000Z"
-tags:
-  - learning
-  - nightly
-  - self-improvement
-pattern: linear-with-branching
+createdAt: 2026-03-16T01:00:00.000Z
+updatedAt: 2026-03-27T18:01:52.181Z
 nodes:
-  # Trigger: Schedule-based nightly run
-  - id: trigger
+  - id: node-1741000000001
     type: workflow
     position:
-      x: 400
-      y: 100
+      x: 364.56009086485517
+      y: 102.85805718831813
     data:
-      subtype: heartbeat
+      subtype: schedule
       category: trigger
       label: Nightly Schedule Trigger
       config:
-        triggerType: heartbeat
-        triggerDescription: "Nightly learning extraction at 4am PT"
-        cron: "0 4 * * *"
+        triggerType: schedule
+        triggerDescription: Nightly learning extraction at 4am PT
+        frequency: daily
+        hour: 4
+        minute: 0
         timezone: America/Los_Angeles
-
-  # Phase 1: Project Setup
-  - id: create_daily_project
+  - id: node-1741000000002
     type: workflow
     position:
-      x: 400
-      y: 250
+      x: 437.7263548857993
+      y: 239.71099412205473
     data:
       subtype: agent
       category: agent
@@ -41,7 +34,6 @@ nodes:
       config:
         agentId: null
         agentName: Daily Project Creator
-        beforePrompt: You are a project setup agent that creates organized folder structures.
         additionalPrompt: |
           Create a new project for today's daily learning review.
 
@@ -57,15 +49,14 @@ nodes:
           5. implemented-changes.md - empty file with header "## Implemented Changes" and table format
 
           Return the absolute path to the created project folder.
-        userMessage: ""
+        orchestratorInstructions: Create daily learning project structure with template files
         successCriteria: Daily project folder created with all template files
         completionContract: ""
-
-  - id: get_conversation_files
+  - id: node-1741000000003
     type: workflow
     position:
-      x: 400
-      y: 400
+      x: 366.84653661550965
+      y: 396.5703313740182
     data:
       subtype: agent
       category: agent
@@ -73,41 +64,60 @@ nodes:
       config:
         agentId: null
         agentName: Conversation File Loader
-        beforePrompt: You are a file system agent that finds recent conversation files.
         additionalPrompt: |
-          List all conversation files in /Users/jonathonbyrdziak/sulla/conversations/ that were modified in the last 24 hours.
+          Find ACTUAL human conversation files in /Users/jonathonbyrdziak/sulla/conversations/ modified in the last 24 hours.
 
-          Focus on files with .jsonl extension.
+          CRITICAL - USE THE CORRECT FILE PATTERN:
+          Human conversation files follow the pattern: thread_*.jsonl
 
-          Return a JSON array of file paths for files modified since yesterday.
+          EXCLUDE these system-generated file patterns:
+          - Files starting with "heartbeat_wf_" (workflow heartbeat logs)
+          - Files starting with "workflow-playbook-" (workflow playbook nodes)
+          - Files starting with "workflow-subwf-" (workflow sub-workflow nodes)
+          - Files starting with "obs-curator-" (observer curator logs)
+          - Files starting with "spawn-agent-" (spawned agent logs)
+          - Files containing "-prompt-" in the name (workflow prompt nodes)
 
-          If there are many files, prioritize the most recent ones (last 10-15 conversation threads).
-        userMessage: "{{create_daily_project.result}}"
+          The ONLY file pattern to include: thread_*.jsonl
+
+          These thread_* files contain actual human conversations with Sulla.
+
+
+          ALSO RUN THIS EXPLICIT SHELL COMMAND to ensure you find the files:
+          ```bash
+          ls -lt /Users/jonathonbyrdziak/sulla/conversations/thread_*.jsonl 2>/dev/null | head -20 | awk '{print $NF}'
+          ```
+
+          This command will list the 20 most recent thread_*.jsonl files. Use its output to build your JSON array.
+          Return a JSON array of file paths for human conversations only.
+          If zero human conversations found, return empty array [].
+
+          Prioritize the most recent 10-15 conversation threads.
+        orchestratorInstructions: Find recent conversation files for analysis
         successCriteria: JSON array of recent conversation file paths returned
         completionContract: ""
-
-  # Router: Split based on conversation count
-  - id: distribute_conversations
+  - id: node-1741000000004
     type: workflow
     position:
-      x: 400
-      y: 550
+      x: 476.2609539233041
+      y: 388.4904763778568
     data:
       subtype: router
       category: routing
       label: Conversation Distributor
       config:
-        classificationPrompt: "Determine if there are more than 10 conversation files to process. If more than 10, route to chunking. If 10 or fewer, route to direct extraction."
+        classificationPrompt: Determine if there are more than 10 conversation files to process. If zero, route to no-conversations. If more than 10, route to chunking. If 10 or fewer, route to direct extraction.
         routes:
           - id: route-chunk
             label: Chunk Conversations
-            description: "More than 10 conversation files - split into chunks"
+            description: More than 10 conversation files - split into chunks
           - id: route-direct
             label: Direct Extraction
-            description: "10 or fewer conversation files - process directly"
-
-  # Chunk path
-  - id: chunk_conversations
+            description: 10 or fewer conversation files - process directly
+          - id: route-none
+            label: No Conversations
+            description: Zero conversation files - skip to completion
+  - id: node-1741000000005
     type: workflow
     position:
       x: 200
@@ -119,7 +129,6 @@ nodes:
       config:
         agentId: null
         agentName: Conversation Chunker
-        beforePrompt: You are a data partitioning agent.
         additionalPrompt: |
           You have a list of conversation files from the previous step.
 
@@ -128,227 +137,128 @@ nodes:
           For each chunk, create a simple text list of file paths.
 
           Return a JSON object with keys: chunk_1, chunk_2, chunk_3, chunk_4 (each containing array of file paths).
-        userMessage: "{{get_conversation_files.result}}"
-        successCriteria: Conversation files divided into 3-4 chunks
+        orchestratorInstructions: Partition conversation files into manageable chunks
+        successCriteria: JSON object with chunk arrays returned
         completionContract: ""
-
-  # Direct extraction path
-  - id: direct_learning_extraction
+  - id: node-1741000000006
     type: workflow
     position:
-      x: 600
-      y: 700
+      x: 568.1418593580843
+      y: 770.4098231247589
     data:
       subtype: agent
       category: agent
-      label: Single File Learning Extractor
+      label: No Conversations Handler
       config:
         agentId: null
-        agentName: Single File Learning Extractor
-        beforePrompt: You are a learning extraction agent. Your job is to read through conversation files and identify EVERYTHING we learned.
+        agentName: No Conversations Handler
         additionalPrompt: |
-          Read and analyze the conversation files from the previous step.
+          No human conversations were found in the last 24 hours. This is fine - the human may be offline or away.
 
-          For EACH conversation, identify and document:
+          Create a simple completion summary:
+          1. Note the date/time of the check
+          2. Record "No human conversations found" status
+          3. Verify the daily project structure exists at ~/sulla/projects/daily-learning-YYYY-MM-DD/
 
-          1. **Technical Learnings** - tools, APIs, bugs, workarounds, commands
-          2. **Process Learnings** - automation opportunities, repetitive tasks, bottlenecks
-          3. **Improvement Opportunities** - missing features, prompt tweaks, config changes
-          4. **Knowledge Gaps** - research needed, documentation gaps
-          5. **Successes to Replicate** - what worked well, patterns to repeat
-
-          Output format for each learning:
-          - Category: [technical|process|improvement|knowledge|success]
-          - What happened: [brief description]
-          - What we learned: [the insight]
-          - Impact: [low|medium|high]
-          - Suggestion: [how to improve the system]
-
-          Return a JSON array of all learnings found. Be THOROUGH - don't miss anything.
-        userMessage: "{{get_conversation_files.result}}"
-        successCriteria: All learnings extracted from conversation files
+          Return a confirmation that the no-conversation state was handled gracefully.
+        orchestratorInstructions: Handle case where no human conversations exist
+        successCriteria: Completion message returned
         completionContract: ""
-
-  # Phase 2: Parallel Learning Agents
-  - id: learning_agent_1
-    type: workflow
-    position:
-      x: 50
-      y: 850
-    data:
-      subtype: agent
-      category: agent
-      label: Learning Extractor - Chunk 1
-      config:
-        agentId: null
-        agentName: Learning Extractor - Chunk 1
-        beforePrompt: You are a learning extraction agent. Your job is to read through conversation files and identify EVERYTHING we learned.
-        additionalPrompt: |
-          Conversation files to analyze (CHUNK 1) from previous step.
-
-          For EACH conversation, identify and document:
-
-          1. **Technical Learnings**
-             - New tools, APIs, or systems we discovered
-             - Bugs we encountered and how we solved them
-             - Workarounds we developed
-             - Commands or techniques that worked/didn't work
-
-          2. **Process Learnings**
-             - Steps that should be automated
-             - Repetitive tasks that need a skill or workflow
-             - Bottlenecks in our pipelines
-             - Quality issues we caught
-
-          3. **Improvement Opportunities**
-             - What we wished worked differently
-             - Missing features or capabilities
-             - Prompt adjustments needed
-             - Configuration changes needed
-
-          4. **Knowledge Gaps**
-             - Things we had to research or figure out
-             - Documentation we needed but didn't have
-             - Topics we need to learn more about
-
-          5. **Successes to Replicate**
-             - What worked really well
-             - Patterns we should repeat
-
-          Output format for each learning:
-          - Category: [technical|process|improvement|knowledge|success]
-          - What happened: [brief description]
-          - What we learned: [the insight]
-          - Impact: [low|medium|high]
-          - Suggestion: [how to improve the system]
-
-          Return a JSON array of all learnings found. Be THOROUGH - don't miss anything.
-        userMessage: "{{chunk_conversations.result}}"
-        successCriteria: All learnings extracted from chunk 1
-        completionContract: ""
-
-  - id: learning_agent_2
-    type: workflow
-    position:
-      x: 200
-      y: 850
-    data:
-      subtype: agent
-      category: agent
-      label: Learning Extractor - Chunk 2
-      config:
-        agentId: null
-        agentName: Learning Extractor - Chunk 2
-        beforePrompt: You are a learning extraction agent. Your job is to read through conversation files and identify EVERYTHING we learned.
-        additionalPrompt: |
-          Conversation files to analyze (CHUNK 2) from previous step.
-
-          For EACH conversation, identify and document:
-
-          1. **Technical Learnings** - tools, APIs, bugs, workarounds, commands
-          2. **Process Learnings** - automation opportunities, repetitive tasks, bottlenecks
-          3. **Improvement Opportunities** - missing features, prompt tweaks, config changes
-          4. **Knowledge Gaps** - research needed, documentation gaps
-          5. **Successes to Replicate** - what worked well, patterns to repeat
-
-          Output format for each learning:
-          - Category: [technical|process|improvement|knowledge|success]
-          - What happened: [brief description]
-          - What we learned: [the insight]
-          - Impact: [low|medium|high]
-          - Suggestion: [how to improve the system]
-
-          Return a JSON array of all learnings found.
-        userMessage: "{{chunk_conversations.result}}"
-        successCriteria: All learnings extracted from chunk 2
-        completionContract: ""
-
-  - id: learning_agent_3
-    type: workflow
-    position:
-      x: 350
-      y: 850
-    data:
-      subtype: agent
-      category: agent
-      label: Learning Extractor - Chunk 3
-      config:
-        agentId: null
-        agentName: Learning Extractor - Chunk 3
-        beforePrompt: You are a learning extraction agent. Your job is to read through conversation files and identify EVERYTHING we learned.
-        additionalPrompt: |
-          Conversation files to analyze (CHUNK 3) from previous step.
-
-          For EACH conversation, identify and document:
-
-          1. **Technical Learnings** - tools, APIs, bugs, workarounds, commands
-          2. **Process Learnings** - automation opportunities, repetitive tasks, bottlenecks
-          3. **Improvement Opportunities** - missing features, prompt tweaks, config changes
-          4. **Knowledge Gaps** - research needed, documentation gaps
-          5. **Successes to Replicate** - what worked well, patterns to repeat
-
-          Output format for each learning:
-          - Category: [technical|process|improvement|knowledge|success]
-          - What happened: [brief description]
-          - What we learned: [the insight]
-          - Impact: [low|medium|high]
-          - Suggestion: [how to improve the system]
-
-          Return a JSON array of all learnings found.
-        userMessage: "{{chunk_conversations.result}}"
-        successCriteria: All learnings extracted from chunk 3
-        completionContract: ""
-
-  # Merge parallel learning paths
-  - id: merge_learnings
+  - id: node-1741000000007
     type: workflow
     position:
       x: 400
-      y: 1000
+      y: 850
     data:
-      subtype: merge
+      subtype: agent
+      category: agent
+      label: Direct Extraction Agent
+      config:
+        agentId: null
+        agentName: Direct Extraction Agent
+        additionalPrompt: |
+          You have a list of conversation file paths to analyze.
+
+          For each conversation file:
+          1. Read the JSONL file (each line is a JSON message)
+          2. Extract: user requests, assistant responses, tool calls, errors, decisions
+          3. Identify patterns: what does the human want? What works? What fails?
+
+          Create a learnings document with:
+          - User goals and requests
+          - What worked well
+          - What failed or caused friction
+          - Suggested improvements
+
+          Save to ~/sulla/projects/daily-learning-YYYY-MM-DD/learnings.md
+
+          Return a summary of extracted learnings.
+        orchestratorInstructions: Extract learnings from conversation files
+        successCriteria: Learnings document created with insights
+        completionContract: ""
+  - id: node-1741000000008
+    type: workflow
+    position:
+      x: 236.16931992710187
+      y: 870.006400318227
+    data:
+      subtype: parallel
       category: flow-control
-      label: Merge Learning Paths
-      config:
-        mergeStrategy: "last"
-
-  # Phase 3: Aggregate & Prioritize
-  - id: aggregate_learnings
+      label: Chunk Processing
+      config: {}
+  - id: node-1741000000009
     type: workflow
     position:
-      x: 400
-      y: 1150
+      x: 352.556250673919
+      y: 993.7122741857002
     data:
       subtype: agent
       category: agent
-      label: Learning Aggregator
+      label: Learnings Aggregator
       config:
         agentId: null
-        agentName: Learning Aggregator
-        beforePrompt: You are a learning aggregation agent. Combine all learnings into a single, deduplicated list.
+        agentName: Learnings Aggregator
         additionalPrompt: |
-          Combine all learnings from the different chunks/sources into a single, deduplicated list.
+          Aggregate learnings from all extraction agents.
 
-          Steps:
-          1. Combine all learnings into one list
-          2. Remove exact duplicates (same category + what happened)
-          3. Merge similar learnings (combine their suggestions)
-          4. Sort by: impact (high first), then category
+          Merge into a single document at ~/sulla/projects/daily-learning-YYYY-MM-DD/daily-learnings.md
 
-          Output: A clean JSON array of unique learnings with:
-          - Original categories preserved
-          - Combined suggestions
-          - Final impact level
+          Include:
+          - Consolidated insights
+          - Common patterns
+          - Priority improvements (ranked by impact)
 
-          Also provide a brief summary:
-          - Total learnings found
-          - Count by category
-          - Count by impact level
-        userMessage: "{{merge_learnings.result}}"
-        successCriteria: Deduplicated and sorted learnings list produced
+          Return confirmation of aggregation.
+        orchestratorInstructions: Merge learnings from all sources
+        successCriteria: Unified learnings document created
         completionContract: ""
+  - id: node-1741000000010
+    type: workflow
+    position:
+      x: 274.81709515166585
+      y: 1158.5741715649544
+    data:
+      subtype: agent
+      category: agent
+      label: Improvement Prioritizer
+      config:
+        agentId: null
+        agentName: Improvement Prioritizer
+        additionalPrompt: |
+          Review the learnings and identify the most valuable improvements.
 
-  - id: prioritize_learnings
+          Prioritize by:
+          - Frequency of issue/pattern
+          - Impact on user experience
+          - Ease of implementation
+
+          Create prioritized list in ~/sulla/projects/daily-learning-YYYY-MM-DD/prioritized-improvements.md
+
+          Return top 3-5 priorities.
+        orchestratorInstructions: Rank improvements by value
+        successCriteria: Prioritized improvements list created
+        completionContract: ""
+  - id: node-1741000000011
     type: workflow
     position:
       x: 400
@@ -356,36 +266,25 @@ nodes:
     data:
       subtype: agent
       category: agent
-      label: Learning Prioritizer
+      label: Implementation Planner
       config:
         agentId: null
-        agentName: Learning Prioritizer
-        beforePrompt: You are a prioritization agent. Analyze consolidated learnings and rank them by implementation priority.
+        agentName: Implementation Planner
         additionalPrompt: |
-          Prioritization Criteria:
-          - Impact: high impact improvements first
-          - Effort: lower effort items can be done more often
-          - Frequency: learnings that apply to frequent tasks rank higher
-          - Blockers: items blocking other improvements rank higher
+          For the top 2-3 prioritized improvements, create implementation suggestions.
 
-          Create a prioritized list with:
-          1. HIGH PRIORITY - items to implement this week
-          2. MEDIUM PRIORITY - items to implement this month
-          3. LOW PRIORITY - items to document for future consideration
+          For each:
+          - Specific change to make
+          - Where to make it (file, workflow, skill)
+          - Expected outcome
 
-          For each item, include:
-          - The learning
-          - Why it's ranked this way
-          - Suggested implementation approach
-          - Estimated effort: [low|medium|high]
+          Save to ~/sulla/projects/daily-learning-YYYY-MM-DD/implementation-suggestions.md
 
-          Output: A markdown-formatted prioritized list saved to the daily project folder.
-        userMessage: "{{aggregate_learnings.result}}"
-        successCriteria: Prioritized list with HIGH/MEDIUM/LOW categories
+          Return the implementation plan.
+        orchestratorInstructions: Create actionable implementation steps
+        successCriteria: Implementation suggestions document created
         completionContract: ""
-
-  # Phase 4: System Improvement Analysis
-  - id: analyze_system_improvements
+  - id: node-1741000000012
     type: workflow
     position:
       x: 400
@@ -393,441 +292,113 @@ nodes:
     data:
       subtype: agent
       category: agent
-      label: System Improvement Analyzer
+      label: Auto-Implementer
       config:
         agentId: null
-        agentName: System Improvement Analyzer
-        beforePrompt: You are a system improvement analyst. Identify patterns and suggest system-level improvements.
+        agentName: Auto-Implementer
         additionalPrompt: |
-          Analysis Framework - examine learnings from these perspectives:
+          Execute the highest-priority improvement if it's safe to automate.
 
-          1. **Automation Opportunities**
-             - What tasks are repeated that could be automated?
-             - Which skills/workflows need to be created?
-             - What agents need new capabilities?
+          Safe to automate:
+          - Prompt tweaks
+          - File organization
+          - Documentation updates
 
-          2. **Prompt Engineering**
-             - Which prompts need tweaking based on what we learned?
-             - What instructions are missing?
-             - What context do we keep needing to provide?
+          NOT safe to automate (mark for human review):
+          - Core identity changes
+          - Workflow structural changes
+          - Anything requiring credentials
 
-          3. **Infrastructure**
-             - What tools are missing?
-             - What integrations need to be added?
-             - What configurations need to change?
+          Log implemented changes to ~/sulla/projects/daily-learning-YYYY-MM-DD/implemented-changes.md
 
-          4. **Process Changes**
-             - What steps in our workflows need modification?
-             - What quality gates are missing?
-             - What validation needs to be added?
-
-          5. **Knowledge Management**
-             - What documentation is missing?
-             - What should be added to skills or SOPs?
-             - What needs to be in the knowledge base?
-
-          Output a JSON array of system improvement suggestions with:
-          - Category: [automation|prompt|infrastructure|process|knowledge]
-          - Current state: what happens now
-          - Improved state: what should happen
-          - Implementation suggestion: how to implement
-          - Effort: [low|medium|high]
-          - Impact: [low|medium|high]
-        userMessage: "{{prioritize_learnings.result}}"
-        successCriteria: System improvement suggestions categorized and documented
+          Return list of what was implemented vs what needs human review.
+        orchestratorInstructions: Execute safe improvements automatically
+        successCriteria: Changes implemented and logged
         completionContract: ""
-
-  # Phase 5: Select Items to Implement
-  - id: select_implementation_items
+  - id: node-1741000000013
     type: workflow
     position:
       x: 400
       y: 1600
     data:
-      subtype: agent
-      category: agent
-      label: Implementation Selector
-      config:
-        agentId: null
-        agentName: Implementation Selector
-        beforePrompt: You are an implementation selector. Select which improvements to implement TODAY.
-        additionalPrompt: |
-          SELECTION RULES:
-          1. Start small - select 1-3 items MAXIMUM for today
-          2. Prioritize LOW effort items first
-          3. Only select HIGH impact items if effort is low
-          4. Avoid items that could break existing functionality
-
-          Today's selection criteria:
-          - Effort must be LOW (things we can safely implement)
-          - Impact should be MEDIUM or HIGH
-          - Must be implementable in under 30 minutes
-
-          For each selected item, provide:
-          - The improvement
-          - Why we're implementing it today
-          - The exact files that need to change
-          - The exact changes to make
-
-          Output: A JSON array of 1-3 items to implement, with full implementation details.
-        userMessage: "{{analyze_system_improvements.result}}"
-        successCriteria: 1-3 implementation items selected with full details
-        completionContract: ""
-
-  # Phase 6: Implement Changes (parallel)
-  - id: implement_change_1
-    type: workflow
-    position:
-      x: 200
-      y: 1750
-    data:
-      subtype: agent
-      category: agent
-      label: Implementation Agent - Change 1
-      config:
-        agentId: null
-        agentName: Implementation Agent - Change 1
-        beforePrompt: You are an implementation agent. Your job is to actually IMPLEMENT the first selected change.
-        additionalPrompt: |
-          Instructions:
-          1. Read the current state of the file(s) specified in the implementation plan
-          2. Make the exact changes specified
-          3. Do NOT make any other changes
-          4. Verify the change was applied correctly
-
-          After implementing, report:
-          - File(s) modified
-          - Change made
-          - Verification that it worked
-
-          IMPORTANT: Only make changes that are SAFE and REVERSIBLE.
-        userMessage: "{{select_implementation_items.result}}"
-        successCriteria: First change implemented and verified
-        completionContract: ""
-
-  - id: implement_change_2
-    type: workflow
-    position:
-      x: 400
-      y: 1750
-    data:
-      subtype: agent
-      category: agent
-      label: Implementation Agent - Change 2
-      config:
-        agentId: null
-        agentName: Implementation Agent - Change 2
-        beforePrompt: You are an implementation agent. Your job is to actually IMPLEMENT the second selected change.
-        additionalPrompt: |
-          Instructions:
-          1. Read the current state of the file(s) specified in the implementation plan
-          2. Make the exact changes specified
-          3. Do NOT make any other changes
-          4. Verify the change was applied correctly
-
-          After implementing, report:
-          - File(s) modified
-          - Change made
-          - Verification that it worked
-
-          IMPORTANT: Only make changes that are SAFE and REVERSIBLE.
-        userMessage: "{{select_implementation_items.result}}"
-        successCriteria: Second change implemented and verified
-        completionContract: ""
-
-  - id: implement_change_3
-    type: workflow
-    position:
-      x: 600
-      y: 1750
-    data:
-      subtype: agent
-      category: agent
-      label: Implementation Agent - Change 3
-      config:
-        agentId: null
-        agentName: Implementation Agent - Change 3
-        beforePrompt: You are an implementation agent. Your job is to actually IMPLEMENT the third selected change.
-        additionalPrompt: |
-          Instructions:
-          1. Read the current state of the file(s) specified in the implementation plan
-          2. Make the exact changes specified
-          3. Do NOT make any other changes
-          4. Verify the change was applied correctly
-
-          After implementing, report:
-          - File(s) modified
-          - Change made
-          - Verification that it worked
-
-          IMPORTANT: Only make changes that are SAFE and REVERSIBLE.
-        userMessage: "{{select_implementation_items.result}}"
-        successCriteria: Third change implemented and verified
-        completionContract: ""
-
-  # Merge implementation paths
-  - id: merge_implementations
-    type: workflow
-    position:
-      x: 400
-      y: 1900
-    data:
-      subtype: merge
-      category: flow-control
-      label: Merge Implementation Results
-      config:
-        mergeStrategy: "last"
-
-  # Phase 7: Update Learning Repository
-  - id: update_learning_repository
-    type: workflow
-    position:
-      x: 400
-      y: 2050
-    data:
-      subtype: agent
-      category: agent
-      label: Learning Repository Updater
-      config:
-        agentId: null
-        agentName: Learning Repository Updater
-        beforePrompt: You are a repository updater. Save today's learnings AND implemented changes to the permanent learning repository.
-        additionalPrompt: |
-          === FILES TO UPDATE ===
-
-          1. **daily-learnings-{date}.md** in /sulla/projects/learnings/daily-learnings/
-             - Create with all consolidated learnings
-
-          2. **prioritized-improvements.md** in /sulla/projects/learnings/
-             - Add today's new prioritized items
-             - Mark items that were IMPLEMENTED TODAY with status "IMPLEMENTED"
-             - Keep existing items that are still relevant
-
-          3. **implementation-suggestions.md** in /sulla/projects/learnings/
-             - Append new system improvement suggestions
-
-          4. **changelog.md** in /sulla/projects/learnings/
-             - Add entries for what was implemented TODAY
-             - Format: | Date | Change | Category | Files Modified | Status |
-             - This is the key file for tracking what we've done
-
-          After updating, provide a summary of what was saved.
-        userMessage: "{{merge_implementations.result}}"
-        successCriteria: All learning repository files updated
-        completionContract: ""
-
-  # Phase 8: Final Report
-  - id: generate_final_report
-    type: workflow
-    position:
-      x: 400
-      y: 2200
-    data:
-      subtype: agent
-      category: agent
-      label: Final Report Generator
-      config:
-        agentId: null
-        agentName: Final Report Generator
-        beforePrompt: You are a report generation agent.
-        additionalPrompt: |
-          Generate a final report of today's daily learning workflow.
-
-          Include:
-          1. Date of workflow run
-          2. Number of conversations analyzed
-          3. Total learnings extracted (by category)
-          4. Top 5 prioritized improvements
-          5. System improvement suggestions (by type)
-          6. **WHAT WAS IMPLEMENTED TODAY** (this is the most important)
-          7. Repository updates made
-
-          Save this report to the daily project folder as workflow-report.md.
-        userMessage: "{{update_learning_repository.result}}"
-        successCriteria: Final report generated and saved
-        completionContract: ""
-
-  # Final Response
-  - id: final_response
-    type: workflow
-    position:
-      x: 400
-      y: 2350
-    data:
       subtype: response
       category: io
-      label: Workflow Complete
+      label: Daily Learning Complete
       config:
-        responseTemplate: |
-          Daily Learning Workflow Complete!
-
-          {{generate_final_report.result}}
-
-          Resources:
-          - Learning repository: ~/sulla/projects/learnings/
-          - Daily project folder: See report above
-        includeContext: true
-
+        responseTemplate: Daily learning run complete. Check ~/sulla/projects/daily-learning-YYYY-MM-DD/ for results.
 edges:
-  # Trigger → Project Setup
-  - id: edge-trigger
-    source: trigger
-    target: create_daily_project
-    sourceHandle: null
-    targetHandle: null
-  # Project Setup → Get Files
-  - id: edge-setup
-    source: create_daily_project
-    target: get_conversation_files
-    sourceHandle: null
-    targetHandle: null
-  # Get Files → Router
-  - id: edge-to-router
-    source: get_conversation_files
-    target: distribute_conversations
-    sourceHandle: null
-    targetHandle: null
-  # Router → Chunk (many files)
-  - id: edge-route-chunk
-    source: distribute_conversations
-    target: chunk_conversations
-    sourceHandle: route-chunk
-    targetHandle: null
-  # Router → Direct (few files)
-  - id: edge-route-direct
-    source: distribute_conversations
-    target: direct_learning_extraction
-    sourceHandle: route-direct
-    targetHandle: null
-  # Chunk → Learning Agent 1
-  - id: edge-chunk-1
-    source: chunk_conversations
-    target: learning_agent_1
-    sourceHandle: null
-    targetHandle: null
-  # Chunk → Learning Agent 2
-  - id: edge-chunk-2
-    source: chunk_conversations
-    target: learning_agent_2
-    sourceHandle: null
-    targetHandle: null
-  # Chunk → Learning Agent 3
-  - id: edge-chunk-3
-    source: chunk_conversations
-    target: learning_agent_3
-    sourceHandle: null
-    targetHandle: null
-  # Learning Agent 1 → Merge
-  - id: edge-learn-1-merge
-    source: learning_agent_1
-    target: merge_learnings
-    sourceHandle: null
-    targetHandle: null
-  # Learning Agent 2 → Merge
-  - id: edge-learn-2-merge
-    source: learning_agent_2
-    target: merge_learnings
-    sourceHandle: null
-    targetHandle: null
-  # Learning Agent 3 → Merge
-  - id: edge-learn-3-merge
-    source: learning_agent_3
-    target: merge_learnings
-    sourceHandle: null
-    targetHandle: null
-  # Direct Extraction → Merge
-  - id: edge-direct-merge
-    source: direct_learning_extraction
-    target: merge_learnings
-    sourceHandle: null
-    targetHandle: null
-  # Merge → Aggregate
-  - id: edge-merge-agg
-    source: merge_learnings
-    target: aggregate_learnings
-    sourceHandle: null
-    targetHandle: null
-  # Aggregate → Prioritize
-  - id: edge-agg-pri
-    source: aggregate_learnings
-    target: prioritize_learnings
-    sourceHandle: null
-    targetHandle: null
-  # Prioritize → Analyze
-  - id: edge-pri-analyze
-    source: prioritize_learnings
-    target: analyze_system_improvements
-    sourceHandle: null
-    targetHandle: null
-  # Analyze → Select
-  - id: edge-analyze-select
-    source: analyze_system_improvements
-    target: select_implementation_items
-    sourceHandle: null
-    targetHandle: null
-  # Select → Implement 1
-  - id: edge-select-impl1
-    source: select_implementation_items
-    target: implement_change_1
-    sourceHandle: null
-    targetHandle: null
-  # Select → Implement 2
-  - id: edge-select-impl2
-    source: select_implementation_items
-    target: implement_change_2
-    sourceHandle: null
-    targetHandle: null
-  # Select → Implement 3
-  - id: edge-select-impl3
-    source: select_implementation_items
-    target: implement_change_3
-    sourceHandle: null
-    targetHandle: null
-  # Implement 1 → Merge
-  - id: edge-impl1-merge
-    source: implement_change_1
-    target: merge_implementations
-    sourceHandle: null
-    targetHandle: null
-  # Implement 2 → Merge
-  - id: edge-impl2-merge
-    source: implement_change_2
-    target: merge_implementations
-    sourceHandle: null
-    targetHandle: null
-  # Implement 3 → Merge
-  - id: edge-impl3-merge
-    source: implement_change_3
-    target: merge_implementations
-    sourceHandle: null
-    targetHandle: null
-  # Merge → Update Repo
-  - id: edge-merge-update
-    source: merge_implementations
-    target: update_learning_repository
-    sourceHandle: null
-    targetHandle: null
-  # Update Repo → Final Report
-  - id: edge-update-report
-    source: update_learning_repository
-    target: generate_final_report
-    sourceHandle: null
-    targetHandle: null
-  # Final Report → Response
-  - id: edge-report-response
-    source: generate_final_report
-    target: final_response
-    sourceHandle: null
-    targetHandle: null
-
-config:
-  max_parallel: 4
-  timeout: 900
-  retry_on_failure: true
-  retry_count: 2
-
-metadata:
-  author: Sulla
-  created: 2026-03-16
-  version: "2.0.0"
-  notes: Nightly learning workflow with CLOSED LOOP - extracts learnings, prioritizes, AND implements 1-3 improvements daily
+  - id: edge-1
+    source: node-1741000000001
+    target: node-1741000000002
+    label: trigger
+    animated: true
+  - id: edge-2
+    source: node-1741000000002
+    target: node-1741000000003
+    label: create-project
+    animated: true
+  - id: edge-3
+    source: node-1741000000003
+    target: node-1741000000004
+    label: conversations-found
+    animated: true
+  - id: edge-4
+    source: node-1741000000004
+    target: node-1741000000005
+    label: route-chunk
+    animated: true
+  - id: edge-5
+    source: node-1741000000004
+    target: node-1741000000007
+    label: route-direct
+    animated: true
+  - id: edge-6
+    source: node-1741000000004
+    target: node-1741000000006
+    label: route-none
+    animated: true
+  - id: edge-7
+    source: node-1741000000005
+    target: node-1741000000008
+    label: chunk-created
+    animated: true
+  - id: edge-8
+    source: node-1741000000006
+    target: node-1741000000013
+    label: no-conversations
+    animated: true
+  - id: edge-9
+    source: node-1741000000007
+    target: node-1741000000009
+    label: direct-done
+    animated: true
+  - id: edge-10
+    source: node-1741000000008
+    target: node-1741000000009
+    label: chunks-done
+    animated: true
+  - id: edge-11
+    source: node-1741000000009
+    target: node-1741000000010
+    label: aggregated
+    animated: true
+  - id: edge-12
+    source: node-1741000000010
+    target: node-1741000000011
+    label: prioritized
+    animated: true
+  - id: edge-13
+    source: node-1741000000011
+    target: node-1741000000012
+    label: planned
+    animated: true
+  - id: edge-14
+    source: node-1741000000012
+    target: node-1741000000013
+    label: implemented
+    animated: true
+_status: production
+viewport:
+  x: -171.50236842596246
+  y: -1528.4014604510514
+  zoom: 1.4408404692184689
