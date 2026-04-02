@@ -3,7 +3,7 @@ name: Daily Project Planning
 description: Goal-driven project ideation using parallel lenses, persistent idea tracking in PROJECT_IDEAS.md, and async human approval via prompt injection into human-facing agents.
 version: 2
 createdAt: 2026-03-18T22:00:00.000Z
-updatedAt: 2026-03-19T05:31:58.192Z
+updatedAt: 2026-04-02T06:58:45.772Z
 nodes:
   - id: node-pp-trigger
     type: workflow
@@ -186,8 +186,8 @@ nodes:
   - id: node-pp-synthesize
     type: workflow
     position:
-      x: 400
-      y: 1160
+      x: 382.9498289623717
+      y: 1159.102622576967
     data:
       subtype: agent
       category: agent
@@ -240,7 +240,7 @@ nodes:
         additionalPrompt: ""
         orchestratorInstructions: |
           You have the synthesizer's output which includes a DECISION (PROPOSE, FOCUS, or UNBLOCK) and supporting data. Your job is to write the agent's project briefing file — a living document that keeps the agent informed about the current project landscape, what to propose, what's blocked, and how to help the human.
-          **Write to:** ~/sulla/agents/sulla/projects.md
+          **Write to:** ~/sulla/agents/sulla-desktop/projects.md
           This file is loaded alongside the sulla agent's prompt and goals.md. It is refreshed daily by this workflow and updated in real-time when the human responds to proposals or project status changes. It serves as the agent's ongoing project awareness — not just proposals, but everything project-related the agent should know to help the human effectively.
           **The content depends on the decision:**
           ---
@@ -311,7 +311,7 @@ nodes:
           Write a record to ~/sulla/daily-logs/[today's date]/project-planning-response.md: - Date and time - Which proposals were presented (slugs + titles) - Human's response (accepted #N / rejected #N with reason / ignored / own idea) - What action was taken (project created, registry updated, etc.)
           This log provides an audit trail and helps the pipeline detect preference patterns.
           ### 3. Rewrite the Injection File
-          After recording the response, update ~/sulla/agents/sulla/projects.md to reflect the current state. Don't gut the file — keep it useful as an ongoing project reference. Update it to:
+          After recording the response, update ~/sulla/agents/sulla-desktop/projects.md to reflect the current state. Don't gut the file — keep it useful as an ongoing project reference. Update it to:
           ```markdown # Project Briefing — [YYYY-MM-DD] **Mode: ACTIVE**
           ## Current Portfolio {List each active project with current status: progressing/blocked/nearly-complete} {For blocked projects, note the blocker and any suggested actions} {For progressing projects, note what's next on their checklist}
           ## Today's Proposals — Addressed {What the human chose and what was created/rejected}
@@ -428,6 +428,6 @@ edges:
     animated: true
 _status: production
 viewport:
-  x: 51.79113108018993
-  y: -544.6755736719149
-  zoom: 0.6858666442953025
+  x: -0.5228716645489158
+  y: -1118.4358322744597
+  zoom: 1.1143583227445997

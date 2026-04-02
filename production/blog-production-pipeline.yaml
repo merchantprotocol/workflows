@@ -4,7 +4,7 @@ description: End-to-end automated blog production with 21 specialized agent stag
 version: 1
 enabled: true
 createdAt: 2026-03-15T00:00:00.000Z
-updatedAt: 2026-03-19T02:58:57.673Z
+updatedAt: 2026-04-02T06:59:25.542Z
 nodes:
   - id: node-1741000000001
     type: workflow
@@ -487,8 +487,8 @@ nodes:
   - id: node-1741000000019
     type: workflow
     position:
-      x: 400
-      y: 2800
+      x: 348.0126327635848
+      y: 2777.4980052260294
     data:
       subtype: agent
       category: agent
@@ -498,32 +498,36 @@ nodes:
         agentName: WordPress Publisher
         beforePrompt: Professional publisher
         additionalPrompt: |
-          Publish the article to WordPress with full SEO configuration.
+          Use the WordPress MCP to publish the article directly to WordPress.
 
-          Pre-publish verification REQUIRED:
-          1. Confirm SEO Review score >= 7
-          2. Confirm Readability Review score >= 7
-          3. Confirm AI Detection Review score >= 7
+          1. Use the create_post endpoint to create the post:
+             - title: The article title
+             - content: Full article HTML content
+             - status: publish (make it live immediately)
+             - excerpt: SEO-optimized excerpt
+             - categories: Relevant category IDs
+             - tags: Relevant tag IDs
+             - slug: SEO-optimized URL slug
 
-          Publishing tasks:
-          1. Create post with title, content, excerpt
-          2. Set categories and tags
-          3. Configure SEO metadata (Yoast/RankMath)
-          4. Set featured image (placeholder if needed)
-          5. Configure author (from supported list)
-          6. Set URL slug (SEO-optimized)
-          7. Schedule or publish immediately
-          8. Save publication record to /published/
+          2. Configure Yoast SEO using the wpseo meta fields if available, or use the REST API to update Yoast meta:
+             - yoast_title: Custom SEO title
+             - yoast_meta_desc: Meta description
+             - primary_category: Set primary category
 
-          Output: Published URL, post ID, publication record
-        userMessage: ""
+          3. Set featured image if provided
+
+          4. Verify the post was published successfully
+
+          Post the user as one of the available users in wordpress. It should not be posted anonymously.
+
+          Output: Published URL, post ID
         successCriteria: Article published with URL and post ID
         completionContract: ""
   - id: node-1741000000020
     type: workflow
     position:
-      x: 323.5746435810175
-      y: 2934.3675407324813
+      x: 367.0267714204094
+      y: 2935.1434715867567
     data:
       subtype: agent
       category: agent
@@ -554,8 +558,8 @@ nodes:
   - id: node-1741000000021
     type: workflow
     position:
-      x: 400
-      y: 3100
+      x: 372.06648924610516
+      y: 3098.4481382914505
     data:
       subtype: agent
       category: agent
@@ -577,46 +581,11 @@ nodes:
         userMessage: ""
         successCriteria: JSON-LD schema markup generated
         completionContract: ""
-  - id: node-1741000000022
-    type: workflow
-    position:
-      x: 469.4775967445295
-      y: 3243.0522403255472
-    data:
-      subtype: agent
-      category: agent
-      label: Post-Publish SEO Verification
-      config:
-        agentId: post-publish-seo-verifier
-        agentName: Post-Publish SEO Verification
-        beforePrompt: Final QA inspector
-        additionalPrompt: |
-          Verify the published article is fully optimized.
-
-          Checks:
-          1. Title tag renders correctly
-          2. Meta description present
-          3. H1 matches title
-          4. Internal links functional
-          5. Images have alt text
-          6. Schema markup validates
-          7. URL slug is clean
-          8. Mobile formatting correct
-          9. Page loads without errors
-          10. Canonical URL set
-          11. Open Graph tags present
-
-          Output: Final SEO verification report
-
-          FULLY OPTIMIZED: Score 8+ (8/11 or higher)
-        userMessage: ""
-        successCriteria: SEO verification score of 8+ out of 11
-        completionContract: ""
   - id: node-1741000000023
     type: workflow
     position:
-      x: 400
-      y: 3400
+      x: 330.166223115263
+      y: 3441.9002661308423
     data:
       subtype: agent
       category: agent
@@ -647,74 +616,11 @@ nodes:
         userMessage: ""
         successCriteria: Social media copy for all 3 platforms
         completionContract: ""
-  - id: node-1741000000024
-    type: workflow
-    position:
-      x: 328.7854633368572
-      y: 3556.9477596744528
-    data:
-      subtype: agent
-      category: agent
-      label: YouTube Script Converter
-      config:
-        agentId: youtube-script-converter
-        agentName: YouTube Script Converter
-        beforePrompt: Video content creator
-        additionalPrompt: |
-          Repurpose article into video script.
-
-          Structure:
-          1. Hook (first 10 seconds) - grab attention
-          2. Problem statement - why viewer should care
-          3. Key points (3-5) - summarize article
-          4. Solution/Action - what to do next
-          5. CTA - watch more / subscribe / read article
-
-          Format:
-          - Conversational, not read verbatim
-          - Visual cues for B-roll/screen recording
-          - Timestamps for sections
-
-          Output: Video script (500-800 words)
-        userMessage: ""
-        successCriteria: Video script of 500-800 words
-        completionContract: ""
-  - id: node-1741000000025
-    type: workflow
-    position:
-      x: 400
-      y: 3700
-    data:
-      subtype: agent
-      category: agent
-      label: Newsletter Draft
-      config:
-        agentId: newsletter-draft-generator
-        agentName: Newsletter Draft
-        beforePrompt: Email marketer
-        additionalPrompt: |
-          Create email newsletter content to announce the article.
-
-          Elements:
-          1. Subject line (2 variations)
-          2. Preheader text
-          3. Greeting (personalized if possible)
-          4. Hook paragraph - why this matters
-          5. Key takeaways (3 bullet points)
-          6. "Read full article" CTA button
-          7. Social proof or credibility line
-
-          Tone: Friendly, valuable, not spammy
-
-          Output: Email copy ready to paste into newsletter tool
-        userMessage: ""
-        successCriteria: Newsletter email copy ready to send
-        completionContract: ""
   - id: node-1741000000026
     type: workflow
     position:
-      x: 445.16043788394416
-      y: 3839.5783604883204
+      x: 320.23557034569245
+      y: 3615.334343602887
     data:
       subtype: response
       category: io
@@ -757,6 +663,27 @@ nodes:
       config:
         triggerType: calendar
         triggerDescription: ""
+  - id: node-1774813749871
+    type: workflow
+    position:
+      x: 369.65964326457174
+      y: 3267.450597185952
+    data:
+      subtype: agent
+      category: agent
+      label: Agent
+      config:
+        agentId: null
+        agentName: ""
+        additionalPrompt: |-
+          Use the wordpress mcp tool to generate the static website for the wordpress blog. 
+
+          Use the generate status tool in this wordpress mcp to wait until the static pages have been generated. 
+
+          Once generated, push the website to the "preview" branch on the cloudflare pages project called merchantprotocol.
+        orchestratorInstructions: ""
+        successCriteria: ""
+        completionContract: ""
 edges:
   - id: vueflow__edge-node-1741000000001-node-1741000000002
     source: node-1741000000001
@@ -898,58 +825,9 @@ edges:
     targetHandle: null
     label: ""
     animated: true
-  - id: vueflow__edge-node-1741000000018-node-1741000000019
-    source: node-1741000000018
-    target: node-1741000000019
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
-  - id: vueflow__edge-node-1741000000019-node-1741000000020
-    source: node-1741000000019
-    target: node-1741000000020
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
   - id: vueflow__edge-node-1741000000020-node-1741000000021
     source: node-1741000000020
     target: node-1741000000021
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
-  - id: vueflow__edge-node-1741000000021-node-1741000000022
-    source: node-1741000000021
-    target: node-1741000000022
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
-  - id: vueflow__edge-node-1741000000022-node-1741000000023
-    source: node-1741000000022
-    target: node-1741000000023
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
-  - id: vueflow__edge-node-1741000000023-node-1741000000024
-    source: node-1741000000023
-    target: node-1741000000024
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
-  - id: vueflow__edge-node-1741000000024-node-1741000000025
-    source: node-1741000000024
-    target: node-1741000000025
-    sourceHandle: null
-    targetHandle: null
-    label: ""
-    animated: true
-  - id: vueflow__edge-node-1741000000025-node-1741000000026
-    source: node-1741000000025
-    target: node-1741000000026
     sourceHandle: null
     targetHandle: null
     label: ""
@@ -975,8 +853,43 @@ edges:
     targetHandle: null
     label: ""
     animated: true
+  - id: vueflow__edge-node-1741000000018-node-1741000000019
+    source: node-1741000000018
+    target: node-1741000000019
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1741000000019-node-1741000000020
+    source: node-1741000000019
+    target: node-1741000000020
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1741000000021-node-1774813749871
+    source: node-1741000000021
+    target: node-1774813749871
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1774813749871-node-1741000000023
+    source: node-1774813749871
+    target: node-1741000000023
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
+  - id: vueflow__edge-node-1741000000023-node-1741000000026
+    source: node-1741000000023
+    target: node-1741000000026
+    sourceHandle: null
+    targetHandle: null
+    label: ""
+    animated: true
 viewport:
-  x: -38.49540018399267
-  y: 143
-  zoom: 0.8068077276908924
+  x: 22.477128335451084
+  y: -469.4358322744597
+  zoom: 1.1143583227445997
 _status: production

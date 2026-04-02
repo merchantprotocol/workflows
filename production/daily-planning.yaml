@@ -3,7 +3,7 @@ name: Daily Planning
 description: Daily autonomous planning pipeline — observe, think, goal-set across human/business in parallel, then focused world-view forecasting, then self goal-setting
 version: 2
 createdAt: 2026-03-17T05:24:02.351Z
-updatedAt: 2026-03-20T00:18:33.127Z
+updatedAt: 2026-04-02T06:58:25.852Z
 nodes:
   - id: node-1773759817932
     type: workflow
@@ -321,19 +321,19 @@ edges:
   - id: e-observe-think-human
     source: node-1773726527762
     target: node-1773726731262
-    animated: true
+    animated: false
   - id: e-think-goal-human
     source: node-1773726731262
     target: node-1773803963347
-    animated: true
+    animated: false
   - id: e-observe-think-business
     source: node-1773727750407
     target: node-1773727873275
-    animated: true
+    animated: false
   - id: e-think-goal-business
     source: node-1773727873275
     target: node-1773803993449
-    animated: true
+    animated: false
   - id: e-human-goal-merge
     source: node-1773803963347
     target: node-merge-human-business
@@ -384,6 +384,6 @@ edges:
     animated: false
 _status: production
 viewport:
-  x: -51.66327442621298
-  y: -101.72108274647263
-  zoom: 0.9927186401994753
+  x: 39.477128335451084
+  y: -36.43583227445981
+  zoom: 1.1143583227445997
